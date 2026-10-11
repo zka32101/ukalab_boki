@@ -1,4 +1,11 @@
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/achievements.dart'
+    show
+        AchievementsView,
+        achievementUnlockOverrides,
+        dailyGoalAchievementCategoryLabels,
+        dailyGoalAchievementsOverride,
+        watchAchievementUnlocks;
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
@@ -60,6 +67,7 @@ void main() async {
   final studyNotes = await studyNotesOverrides('boki3');
   final dailyGoal = await dailyGoalOverrides('boki3');
   final reminder = await reminderOverrides('boki3');
+  final achievementUnlock = await achievementUnlockOverrides('boki3');
 
   runApp(
     ProviderScope(
@@ -68,24 +76,31 @@ void main() async {
         ...studyNotes,
         ...dailyGoal,
         ...reminder,
+        ...achievementUnlock,
+        dailyGoalAchievementsOverride,
       ],
       child: const UkalabBoki3App(),
     ),
   );
 }
 
-class UkalabBoki3App extends StatelessWidget {
+/// 実績の解除通知のスナックバーを、どの画面にいても表示するためのキー。
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+class UkalabBoki3App extends ConsumerWidget {
   const UkalabBoki3App({super.key});
 
   static const _field = UkalabField.biz;
   static const _cert = UkalabCert.boki3;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    watchAchievementUnlocks(ref, scaffoldMessengerKey);
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: appThemeMode,
       builder: (context, mode, _) => MaterialApp(
         title: 'うかラボ 簿記3級',
+        scaffoldMessengerKey: scaffoldMessengerKey,
         theme: UkalabTheme.light(field: _field, cert: _cert),
         darkTheme: UkalabTheme.dark(field: _field, cert: _cert),
         themeMode: mode,
@@ -118,6 +133,18 @@ class UkalabBoki3App extends StatelessWidget {
                     ),
                     description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・デイリーミッション・自分用メモは、'
                         'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.emoji_events_outlined),
+                    title: const Text('実績'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AchievementsView(categoryLabels: dailyGoalAchievementCategoryLabels),
+                      ),
+                    ),
                   ),
                 ],
               ),

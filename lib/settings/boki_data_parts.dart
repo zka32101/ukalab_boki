@@ -1,3 +1,4 @@
+import 'package:ukalab_core/achievements.dart' show achievementUnlockDataPart;
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/ui.dart';
 
@@ -16,6 +17,7 @@ List<DataPart> bokiDataParts({
   required LearnedTermsStore learnedTermsStore,
 }) =>
     [
+      achievementUnlockDataPart,
       DataPart(
         id: 'progress',
         export: (ref) async => [for (final r in await progressStore.loadRecords()) r.toJson()],
