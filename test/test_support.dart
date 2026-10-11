@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ukalab_core/achievements.dart';
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
@@ -18,4 +19,7 @@ List<Override> studyNotesTestOverrides() => [
           .overrideWithValue(DailyGoalHistoryService(store: DailyGoalHistoryStore('test'))),
       reminderSettingsServiceProvider
           .overrideWithValue(ReminderSettingsService(store: ReminderSettingsStore('test'))),
+      achievementUnlockServiceProvider
+          .overrideWithValue(AchievementUnlockService(store: AchievementUnlockStore('test'))),
+      dailyGoalAchievementsOverride,
     ];
