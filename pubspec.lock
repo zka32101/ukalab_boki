@@ -458,11 +458,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.41.0"
-      resolved-ref: "7b723ff5b69eaf2d7dec9dce1226ead7500a3c58"
+      ref: "v0.43.0"
+      resolved-ref: "34352d0226a27f721afa5a5d21d4ca7b10f65849"
       url: "https://github.com/zka32101/ukalab_core.git"
     source: git
-    version: "0.41.0"
+    version: "0.43.0"
   uuid:
     dependency: transitive
     description:
