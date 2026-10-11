@@ -42,6 +42,7 @@ class _TermListPageState extends State<TermListPage> {
             store: _learnedStore,
             initialSubjectId: widget.initialSubjectId,
             initialSubjectLabel: subjectLabel,
+            sortByTerm: false,
           );
         },
       ),
