@@ -21,7 +21,7 @@ void main() {
       companyModeHistoryStore: historyStore,
       learnedTermsStore: learned,
     );
-    expect([for (final p in parts) p.id], ['progress', 'companyMode', 'learnedTerms', 'questionMemo']);
+    expect([for (final p in parts) p.id], ['progress', 'companyMode', 'learnedTerms', 'dailyGoal', 'dailyGoalHistory', 'questionMemo']);
 
     late WidgetRef ref;
     await tester.pumpWidget(ProviderScope(

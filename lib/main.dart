@@ -1,4 +1,5 @@
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,12 +57,14 @@ void main() async {
   );
 
   final studyNotes = await studyNotesOverrides('boki3');
+  final dailyGoal = await dailyGoalOverrides('boki3');
 
   runApp(
     ProviderScope(
       overrides: [
         entitlementServiceProvider.overrideWithValue(entitlementService),
         ...studyNotes,
+        ...dailyGoal,
       ],
       child: const UkalabBoki3App(),
     ),
@@ -97,14 +100,21 @@ class UkalabBoki3App extends StatelessWidget {
               purchaseSection: Builder(
                 builder: (c) => PurchaseSection(titleStyle: Theme.of(c).textTheme.titleLarge),
               ),
-              dataSection: DataManagementSection(
-                parts: bokiDataParts(
-                  progressStore: appProgressStore,
-                  companyModeHistoryStore: appCompanyModeHistoryStore,
-                  learnedTermsStore: LearnedTermsStore(),
-                ),
-                description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・自分用メモは、'
-                    'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
+              dataSection: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const DailyGoalSetting(),
+                  const SizedBox(height: 32),
+                  DataManagementSection(
+                    parts: bokiDataParts(
+                      progressStore: appProgressStore,
+                      companyModeHistoryStore: appCompanyModeHistoryStore,
+                      learnedTermsStore: LearnedTermsStore(),
+                    ),
+                    description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・デイリーミッション・自分用メモは、'
+                        'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
+                  ),
+                ],
               ),
             ),
           ],
@@ -127,6 +137,7 @@ class _HomePage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Boki3OshiCard(store: appProgressStore),
+        const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
         ProgressSummaryCard(store: appProgressStore),
       ],
     );

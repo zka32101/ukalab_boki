@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
@@ -126,7 +128,7 @@ class _PracticePageState extends State<PracticePage> {
   }
 }
 
-class _SessionBody extends StatefulWidget {
+class _SessionBody extends ConsumerStatefulWidget {
   const _SessionBody({required this.session, required this.progressStore, this.priorityCount = 0});
 
   final PracticeSession session;
@@ -136,11 +138,12 @@ class _SessionBody extends StatefulWidget {
   final int priorityCount;
 
   @override
-  State<_SessionBody> createState() => _SessionBodyState();
+  ConsumerState<_SessionBody> createState() => _SessionBodyState();
 }
 
-class _SessionBodyState extends State<_SessionBody> {
+class _SessionBodyState extends ConsumerState<_SessionBody> {
   void _recordProgress(String qid, String subjectId, {required bool correct}) {
+    unawaited(recordDailyAnswer(ref));
     unawaited(
       widget.progressStore
           .addRecord(

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:ukalab_boki3/main.dart';
+import 'test_support.dart';
 
 void main() {
   setUp(() {
@@ -14,7 +15,7 @@ void main() {
     tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     await tester.pumpWidget(ProviderScope(
-        overrides: [entitlementServiceProvider.overrideWithValue(FakeEntitlementService())],
+        overrides: [entitlementServiceProvider.overrideWithValue(FakeEntitlementService()), ...studyNotesTestOverrides()],
         child: const UkalabBoki3App(),
       ));
     await tester.pumpAndSettle();
