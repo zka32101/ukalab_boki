@@ -1,5 +1,6 @@
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/daily_goal.dart';
+import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,6 +59,7 @@ void main() async {
 
   final studyNotes = await studyNotesOverrides('boki3');
   final dailyGoal = await dailyGoalOverrides('boki3');
+  final reminder = await reminderOverrides('boki3');
 
   runApp(
     ProviderScope(
@@ -65,6 +67,7 @@ void main() async {
         entitlementServiceProvider.overrideWithValue(entitlementService),
         ...studyNotes,
         ...dailyGoal,
+        ...reminder,
       ],
       child: const UkalabBoki3App(),
     ),
@@ -105,6 +108,8 @@ class UkalabBoki3App extends StatelessWidget {
                 children: [
                   const DailyGoalSetting(),
                   const SizedBox(height: 32),
+                  const ReminderSettingsSection(showMockReminder: false),
+                  const SizedBox(height: 32),
                   DataManagementSection(
                     parts: bokiDataParts(
                       progressStore: appProgressStore,
@@ -138,6 +143,7 @@ class _HomePage extends StatelessWidget {
         const SizedBox(height: 16),
         Boki3OshiCard(store: appProgressStore),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
+        const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
         ProgressSummaryCard(store: appProgressStore),
       ],
     );
