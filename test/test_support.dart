@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/daily_goal.dart';
+import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
 
 /// ブックマーク・タグ・メモのサービス（端末内保存。読み込み前は空）を差し込む override。
@@ -15,4 +16,6 @@ List<Override> studyNotesTestOverrides() => [
       dailyGoalServiceProvider.overrideWithValue(DailyGoalService(store: DailyGoalStore('test'))),
       dailyGoalHistoryServiceProvider
           .overrideWithValue(DailyGoalHistoryService(store: DailyGoalHistoryStore('test'))),
+      reminderSettingsServiceProvider
+          .overrideWithValue(ReminderSettingsService(store: ReminderSettingsStore('test'))),
     ];
