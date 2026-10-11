@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../exam_data/exam_data_cache.dart';
-import 'term_card_opener.dart';
+import 'package:ukalab_core/glossary.dart' show openTermCard;
 
 /// 解説文を表示し、文中に用語集の見出し語が含まれていれば、その用語を
 /// [showTermCard] で開けるチップを添える。

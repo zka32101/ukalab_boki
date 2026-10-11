@@ -1,11 +1,11 @@
 import 'package:ukalab_core/achievements.dart' show achievementUnlockDataPart;
+import 'package:ukalab_core/glossary.dart' show LearnedTermsStore, learnedTermsDataPart;
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/ui.dart';
 
 import '../company_mode/company_mode_history_store.dart';
 import '../progress/progress_revision.dart';
 import '../progress/progress_store.dart';
-import '../term/learned_terms_store.dart';
 
 /// 設定タブの「データの管理」（書き出し・読み込み・リセット）の対象。
 ///
@@ -49,25 +49,7 @@ List<DataPart> bokiDataParts({
           progressRevision.value++;
         },
       ),
-      DataPart(
-        id: 'learnedTerms',
-        export: (ref) async => (await learnedTermsStore.load()).toList()..sort(),
-        restore: (ref, json) async {
-          final next = (json as List).cast<String>().toSet();
-          final current = await learnedTermsStore.load();
-          for (final id in current.difference(next)) {
-            await learnedTermsStore.setLearned(id, false);
-          }
-          for (final id in next.difference(current)) {
-            await learnedTermsStore.setLearned(id, true);
-          }
-        },
-        reset: (ref) async {
-          for (final id in await learnedTermsStore.load()) {
-            await learnedTermsStore.setLearned(id, false);
-          }
-        },
-      ),
+      learnedTermsDataPart(learnedTermsStore),
       DataPart(
         id: 'dailyGoal',
         export: (ref) => ref.read(dailyGoalProvider).toJson(),

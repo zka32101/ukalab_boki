@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ukalab_boki3/company_mode/company_mode_history_store.dart';
 import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'package:ukalab_boki3/settings/boki_data_parts.dart';
-import 'package:ukalab_boki3/term/learned_terms_store.dart';
+import 'package:ukalab_core/glossary.dart' show LearnedTermsStore;
 import 'package:ukalab_core/ui.dart';
 
 import 'test_support.dart';
@@ -15,7 +15,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final progressStore = InMemoryProgressStore();
     final historyStore = InMemoryCompanyModeHistoryStore();
-    final learned = LearnedTermsStore();
+    final learned = LearnedTermsStore('boki3');
     final parts = bokiDataParts(
       progressStore: progressStore,
       companyModeHistoryStore: historyStore,

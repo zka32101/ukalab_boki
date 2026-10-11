@@ -7,6 +7,7 @@ import 'package:ukalab_core/achievements.dart'
         dailyGoalAchievementsOverride,
         watchAchievementUnlocks;
 import 'package:ukalab_core/daily_goal.dart';
+import 'package:ukalab_core/glossary.dart' show LearnedTermsStore;
 import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,6 @@ import 'records/records_page.dart';
 import 'settings/boki_data_parts.dart';
 import 'settings/settings_page.dart';
 import 'startup/legacy_key_migration.dart';
-import 'term/learned_terms_store.dart';
 import 'term/term_list_page.dart';
 
 /// 演習・模擬試験の解答記録の保存先。端末内保存（アプリ全体で共有）。
@@ -129,7 +129,7 @@ class UkalabBoki3App extends ConsumerWidget {
                     parts: bokiDataParts(
                       progressStore: appProgressStore,
                       companyModeHistoryStore: appCompanyModeHistoryStore,
-                      learnedTermsStore: LearnedTermsStore(),
+                      learnedTermsStore: LearnedTermsStore('boki3'),
                     ),
                     description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・デイリーミッション・自分用メモは、'
                         'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
