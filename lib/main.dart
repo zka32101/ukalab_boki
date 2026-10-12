@@ -22,6 +22,7 @@ import 'oshi/boki3_oshi_card.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
 import 'purchase/weak_drill_card.dart';
+import 'reading/reading_list_page.dart';
 import 'progress/progress_summary_card.dart';
 import 'records/records_page.dart';
 import 'settings/boki_data_parts.dart';
@@ -239,6 +240,19 @@ class _LearnPage extends StatelessWidget {
             ),
             icon: const Icon(Icons.menu_book_outlined),
             label: const Align(alignment: Alignment.centerLeft, child: Text('用語集')),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text('読んで学ぶ', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ReadingListPage(progressStore: appProgressStore)),
+            ),
+            icon: const Icon(Icons.auto_stories_outlined),
+            label: const Align(alignment: Alignment.centerLeft, child: Text('章ごとの解説読み物')),
           ),
         ),
         const SizedBox(height: 24),

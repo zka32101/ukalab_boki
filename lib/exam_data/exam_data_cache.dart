@@ -7,6 +7,7 @@ Future<List<Question>>? _questionsFuture;
 Future<ExamConfig>? _examConfigFuture;
 Future<List<Term>>? _termsFuture;
 Future<List<CompanyScenario>>? _companyScenariosFuture;
+Future<List<ChapterReading>>? _chapterReadingsFuture;
 
 /// `assets/exam/boki3.questions.jsonl` を読み込み・パースする。
 ///
@@ -64,4 +65,20 @@ Future<List<CompanyScenario>> _loadCompanyScenarios() async {
     throw StateError('会社経営モードのシナリオデータの読み込みに失敗しました: ${parsed.issues}');
   }
   return parsed.scenarios;
+}
+
+/// `assets/exam/boki3.readings.jsonl`（章ごとの解説読み物）を読み込み・パースする（同様にキャッシュする）。
+///
+/// 用語・問題への参照の実在確認は `test/readings_data_test.dart` で配信前に検証する。
+Future<List<ChapterReading>> loadChapterReadings() {
+  return _chapterReadingsFuture ??= _loadChapterReadings();
+}
+
+Future<List<ChapterReading>> _loadChapterReadings() async {
+  final text = await rootBundle.loadString('assets/exam/boki3.readings.jsonl');
+  final parsed = parseChapterReadingsJsonl(text);
+  if (parsed.issues.isNotEmpty) {
+    throw StateError('解説読み物データの読み込みに失敗しました: ${parsed.issues}');
+  }
+  return parsed.items.where((r) => !r.disabled).toList();
 }
