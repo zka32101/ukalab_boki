@@ -3,12 +3,15 @@
 // 期待値は環境変数で渡す（アプリごとに違うため）:
 //   E2E_SETTINGS   設定タブに出るはずの文言（カンマ区切り）
 //   E2E_EXAM_DATE  1 なら、受験日の入力→再読み込みで残る→解除 を確認する
+//   E2E_READING    「入口の文言|読み物の題名(一部)|最初の節の見出し」。あれば、解説読み物の一覧と詳細を確認する
 // Flutter Web は文字をキャンバスに描くので、アクセシビリティ（semantics）を有効にして文字とボタンを拾う。
 const { chromium } = require('playwright');
 
 const shots = process.argv[2] || '.';
 const settingsExpect = (process.env.E2E_SETTINGS || '購入,ながら学習モード').split(',').filter(Boolean);
 const examDate = process.env.E2E_EXAM_DATE === '1';
+const reading = (process.env.E2E_READING || '').split('|').filter(Boolean);
+if (reading.length && reading.length !== 3) throw new Error('E2E_READING は「入口|題名|見出し」の3つ');
 const tabs = ['ホーム', '学ぶ', '模擬', '記録', '設定'];
 const failures = [];
 
@@ -87,6 +90,21 @@ function check(name, ok) {
 
     await click('受験日を解除');
     check('受験日を解除すると未設定に戻る', await waitText('未設定'));
+  }
+
+  // 章ごとの解説読み物: 入口 → 一覧に題名 → 開くと節の見出しが出る
+  //   E2E_READING=入口の文言|読み物の題名(一部)|最初の節の見出し
+  if (reading) {
+    const [entry, title, heading] = reading;
+    await boot();
+    await click('学ぶ');
+    check(`学ぶタブに「${entry}」`, await waitText(entry));
+    await click(entry);
+    check(`読み物の一覧に「${title}」`, await waitText(title));
+    await page.screenshot({ path: `${shots}/reading-list.png` });
+    await click(title);
+    check(`読み物を開くと節「${heading}」が出る`, await waitText(heading));
+    await page.screenshot({ path: `${shots}/reading-detail.png` });
   }
 
   check('ページエラーなし', errors.length === 0);
