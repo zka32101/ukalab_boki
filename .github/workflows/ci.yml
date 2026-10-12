@@ -42,7 +42,7 @@ jobs:
         env:
           E2E_SETTINGS: '購入,ながら学習モード'
           E2E_EXAM_DATE: ''
-          E2E_READING: '読んで学ぶ|仕訳の基本|簿記上の取引とは'
+          E2E_READING: '章ごとの解説読み物|仕訳の基本|簿記上の取引とは'
         run: |
           (cd build/web && python3 -m http.server 8099 >/dev/null 2>&1 &)
           for i in $(seq 1 30); do curl -sf http://localhost:8099/ >/dev/null && break; sleep 1; done
