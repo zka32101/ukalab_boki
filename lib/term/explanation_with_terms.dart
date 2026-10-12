@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ukalab_core/ukalab_core.dart';
+import 'package:ukalab_core/ui.dart';
 
 import '../exam_data/exam_data_cache.dart';
 import 'package:ukalab_core/glossary.dart' show openTermCard;
