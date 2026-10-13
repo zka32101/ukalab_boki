@@ -77,6 +77,12 @@ void main() {
 
     testWidgets('幅320・文字2倍でオーバーフローしない（復習の期限あり・節目の祝福あり）', (tester) async {
       SharedPreferences.setMockInitialValues(seededPrefs());
+      final prev = FlutterError.onError;
+      FlutterError.onError = (d) {
+        // ignore: avoid_print
+        print('DBG ${d.toString().split('\n').where((l) => l.contains('Row') || l.contains('.dart') || l.contains('overflow')).take(12).join(' | ')}');
+        prev?.call(d);
+      };
       await pumpApp(tester, size: const Size(320, 8000), scale: 2.0);
       // 回答10問の節目の祝福が一度だけ出る。閉じるとホームが見える。
       expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
