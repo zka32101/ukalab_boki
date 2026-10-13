@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ukalab_boki3/exam_data/exam_data_cache.dart';
 import 'package:ukalab_boki3/hands_free/hands_free_section.dart';
 import 'package:ukalab_boki3/hands_free/hands_free_state.dart';
 import 'package:ukalab_boki3/main.dart';
@@ -103,19 +102,18 @@ void main() {
     expect(speech.stopCount, greaterThan(0));
   });
 
-  testWidgets('出題は選択式だけで、復習が必要な問題が先頭に来る', (tester) async {
-    final all = (await tester.runAsync(loadQuestions))!;
+  test('出題は今の試験区分の問題だけで、復習が必要な問題が先頭に来る', () {
+    final all = [_q('a'), _q('b'), _q('c'), _q('old', level: 'no_such_level')];
     final picked = pickNagaraQuestions(all, const [], random: Random(1));
-    expect(picked, isNotEmpty);
+    expect(picked.map((q) => q.qid).toSet(), {'a', 'b', 'c'});
     expect(picked.every((q) => q.type == QuestionType.choice), isTrue);
 
-    final wrong = picked[picked.length - 1];
     final again = pickNagaraQuestions(
       all,
-      [ProgressRecord(qid: wrong.qid, subjectId: wrong.subjectId, correct: false, at: DateTime.now())],
+      [ProgressRecord(qid: 'c', subjectId: 'q2_choubo', correct: false, at: DateTime.now())],
       random: Random(1),
     );
-    expect(again.first.qid, wrong.qid);
+    expect(again.first.qid, 'c');
   });
 
   testWidgets('設定: 考える間・次までの間・自動で次へを保存し、反映する', (tester) async {
@@ -170,6 +168,7 @@ void main() {
   });
 
   testWidgets('正解のタップ回答も、1問ごとにすぐ解答記録に載る', (tester) async {
+    appHandsFree.value = const HandsFreeSettings(thinkSeconds: 12, betweenSeconds: 0);
     final store = await pumpPage(tester, [_q('a'), _q('b')]);
 
     // 出題順はランダムなので、いま出ている問題の正解を押す。
@@ -179,7 +178,7 @@ void main() {
     expect(records, hasLength(1));
     expect(records.single.correct, isTrue);
 
-    await _tick(tester, 3);
+    await _tick(tester, 1);
     await tester.tap(find.textContaining('正しい-'));
     await tester.pump();
     await _tick(tester, 3);
