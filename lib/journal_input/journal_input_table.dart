@@ -83,10 +83,10 @@ class _TableHeaderRow extends StatelessWidget {
     final style = Theme.of(context).textTheme.labelMedium;
     return Row(
       children: [
-        Expanded(flex: 3, child: Text('借方科目', style: style)),
-        Expanded(flex: 2, child: Text('借方金額', style: style, textAlign: TextAlign.right)),
-        Expanded(flex: 3, child: Text('貸方科目', style: style)),
-        Expanded(flex: 2, child: Text('貸方金額', style: style, textAlign: TextAlign.right)),
+        Expanded(flex: 4, child: Text('借方科目', style: style)),
+        Expanded(flex: 3, child: Text('借方金額', style: style, textAlign: TextAlign.right)),
+        Expanded(flex: 4, child: Text('貸方科目', style: style)),
+        Expanded(flex: 3, child: Text('貸方金額', style: style, textAlign: TextAlign.right)),
         const SizedBox(width: 32),
       ],
     );
@@ -117,7 +117,7 @@ class _JournalRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          flex: 3,
+          flex: 4,
           child: _Cell(
             cell: JournalCellRef(rowIndex: rowIndex, side: JournalSide.debit, field: JournalCellField.account),
             text: row.debitAccount != null ? accountNameOf(row.debitAccount!) : '',
@@ -127,7 +127,7 @@ class _JournalRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          flex: 2,
+          flex: 3,
           child: _Cell(
             cell: JournalCellRef(rowIndex: rowIndex, side: JournalSide.debit, field: JournalCellField.amount),
             text: row.debitAmount?.toString() ?? '',
@@ -138,7 +138,7 @@ class _JournalRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          flex: 3,
+          flex: 4,
           child: _Cell(
             cell: JournalCellRef(rowIndex: rowIndex, side: JournalSide.credit, field: JournalCellField.account),
             text: row.creditAccount != null ? accountNameOf(row.creditAccount!) : '',
@@ -148,7 +148,7 @@ class _JournalRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          flex: 2,
+          flex: 3,
           child: _Cell(
             cell: JournalCellRef(rowIndex: rowIndex, side: JournalSide.credit, field: JournalCellField.amount),
             text: row.creditAmount?.toString() ?? '',
@@ -219,11 +219,18 @@ class _Cell extends StatelessWidget {
                 const SizedBox(width: 4),
               ],
               Expanded(
-                child: Text(
-                  text,
-                  textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: alignEnd
+                    // 金額は途中で切らず、セルの幅に合わせて縮小して全桁を見せる。
+                    ? FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(text, textAlign: TextAlign.right),
+                      )
+                    : Text(
+                        text,
+                        textAlign: TextAlign.left,
+                        overflow: TextOverflow.ellipsis,
+                      ),
               ),
             ],
           ),
