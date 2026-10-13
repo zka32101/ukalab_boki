@@ -11,7 +11,6 @@ import 'package:ukalab_boki3/mock_exam/mock_exam_page.dart';
 import 'package:ukalab_boki3/oshi/oshi_growth_section.dart';
 import 'package:ukalab_boki3/review/today_review_section.dart';
 import 'package:ukalab_boki3/practice/choice_question_view.dart';
-import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'package:ukalab_boki3/review/review_schedule.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
@@ -224,7 +223,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       final analysis = const MockExamAnalysisEngine().analyze([
         for (var i = 0; i < 4; i++) MockExamAnswer(topicId: 'q1_shiwake', correct: i == 0),
-        for (var i = 0; i < 4; i++) MockExamAnswer(topicId: 'q2_choubo', correct: true),
+        for (var i = 0; i < 4; i++) const MockExamAnswer(topicId: 'q2_choubo', correct: true),
         for (var i = 0; i < 3; i++) MockExamAnswer(topicId: 'q3_kessan', correct: i == 0),
       ]);
       await tester.pumpWidget(MaterialApp(
