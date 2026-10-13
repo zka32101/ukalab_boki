@@ -77,6 +77,8 @@ void main() {
       await settle(tester);
       expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
 
+      // ignore: avoid_print
+      print('DBG home texts: ${tester.widgetList<Text>(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(Text))).map((t) => t.data).toList()}');
       // 期限が来ているので、復習カードに「やってみる」ボタンがある。
       expect(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(FilledButton)), findsOneWidget);
       expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
@@ -168,6 +170,10 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 100));
         });
         await tester.pump(const Duration(milliseconds: 100));
+      }
+      if (find.text('模擬試験を開始する').evaluate().isEmpty) {
+        // ignore: avoid_print
+        print('DBG mock texts: ${tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).toList()} ex=${tester.takeException()}');
       }
       await tester.tap(find.text('模擬試験を開始する'));
       await tester.pump();
