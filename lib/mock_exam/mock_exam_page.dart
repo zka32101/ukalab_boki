@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:ukalab_core/ui.dart' show MockExamAnalysisCard;
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../evidence_input/evidence_question_view.dart';
@@ -12,6 +13,7 @@ import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../practice/choice_question_view.dart';
 import '../practice/practice_page.dart';
+import '../oshi/oshi_recap.dart' show topicLabelFor;
 import '../progress/progress_revision.dart';
 import '../voucher_input/voucher_kind.dart';
 import '../voucher_input/voucher_question_view.dart';
@@ -498,6 +500,19 @@ class _MockExamResultView extends StatelessWidget {
                 ],
               ),
             ),
+        const SizedBox(height: 16),
+        // 結果分析（分野別の様子と「次にやる分野」）。今回の解答だけから作り、何も保存しない。
+        MockExamAnalysisCard(
+          analysis: const MockExamAnalysisEngine().analyze([
+            for (final q in questions) MockExamAnswer(topicId: q.topicId, correct: !wrongQids.contains(q.qid)),
+          ]),
+          topicLabel: topicLabelFor(questions, (id) {
+            for (final s in exam.subjects) {
+              if (s.subjectId == id) return s.name;
+            }
+            return null;
+          }),
+        ),
         const SizedBox(height: 32),
         OutlinedButton(
           onPressed: () => Navigator.of(context).push(

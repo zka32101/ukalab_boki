@@ -25,12 +25,14 @@ import 'mistake_note/mistake_note_page.dart';
 import 'nagara/nagara_session_page.dart';
 import 'mock_exam/mock_exam_page.dart';
 import 'oshi/boki3_oshi_card.dart';
+import 'oshi/oshi_growth_section.dart';
 import 'oshi/oshi_home_cards.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
 import 'purchase/weak_drill_card.dart';
 import 'purchase/weak_summary_section.dart';
 import 'reading/reading_list_page.dart';
+import 'review/today_review_section.dart';
 import 'progress/progress_summary_card.dart';
 import 'records/records_page.dart';
 import 'settings/boki_data_parts.dart';
@@ -113,6 +115,7 @@ class UkalabBoki3App extends ConsumerWidget {
       builder: (context, mode, _) => MaterialApp(
         title: 'うかラボ 簿記3級',
         scaffoldMessengerKey: scaffoldMessengerKey,
+        navigatorObservers: [homeRouteObserver],
         theme: UkalabTheme.light(field: _field, cert: _cert),
         darkTheme: UkalabTheme.dark(field: _field, cert: _cert),
         themeMode: mode,
@@ -188,12 +191,14 @@ class _HomePage extends StatelessWidget {
         // 推しの一言（無料）。タップで別の一言。
         OshiMessageCard(progressStore: appProgressStore),
         // 見出しで4つに分ける（既存の専用カードはそのまま置く。折りたたみは要素が少ないため使わない）。
-        const HomeSection(
+        HomeSection(
           title: '今日やること',
           child: Column(
             children: [
-              Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
-              Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
+              // 今日の復習（間違いノートの問題を、忘れる頃に）。
+              TodayReviewSection(progressStore: appProgressStore),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
             ],
           ),
         ),
@@ -202,6 +207,8 @@ class _HomePage extends StatelessWidget {
           child: Column(
             children: [
               ProgressSummaryCard(store: appProgressStore),
+              // 推しの成長（これまでの積み重ねへの反応。節目では一度だけ祝う）。
+              OshiGrowthSection(progressStore: appProgressStore),
               // 週間ふりかえり（無料。今週できたことだけを見せる）。
               WeeklyRecapSection(progressStore: appProgressStore),
             ],

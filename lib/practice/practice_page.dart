@@ -16,6 +16,7 @@ import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../progress/progress_revision.dart';
 import '../progress/progress_store.dart' show attachCause;
+import '../review/review_schedule.dart' show recordReviewResult;
 import '../voucher_input/voucher_kind.dart';
 import '../voucher_input/voucher_question_view.dart';
 import '../worksheet_input/worksheet_question_view.dart';
@@ -146,12 +147,15 @@ class _SessionBody extends ConsumerStatefulWidget {
 class _SessionBodyState extends ConsumerState<_SessionBody> {
   void _recordProgress(String qid, String subjectId, {required bool correct}) {
     unawaited(recordDailyAnswer(ref));
+    final now = DateTime.now();
     unawaited(
       widget.progressStore
           .addRecord(
-            ProgressRecord(qid: qid, subjectId: subjectId, correct: correct, at: DateTime.now()),
+            ProgressRecord(qid: qid, subjectId: subjectId, correct: correct, at: now),
           )
-          .then((_) {
+          .then((_) async {
+            // 「今日の復習」の期限に来ている問題なら結果を反映する（履歴と同じ時刻で）。
+            await recordReviewResult(qid, correct: correct, now: now);
             progressRevision.value++;
             unawaited(recordStudyToday());
           }),
