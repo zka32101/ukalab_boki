@@ -500,19 +500,6 @@ class _MockExamResultView extends StatelessWidget {
                 ],
               ),
             ),
-        const SizedBox(height: 16),
-        // 結果分析（分野別の様子と「次にやる分野」）。今回の解答だけから作り、何も保存しない。
-        MockExamAnalysisCard(
-          analysis: const MockExamAnalysisEngine().analyze([
-            for (final q in questions) MockExamAnswer(topicId: q.topicId, correct: !wrongQids.contains(q.qid)),
-          ]),
-          topicLabel: topicLabelFor(questions, (id) {
-            for (final s in exam.subjects) {
-              if (s.subjectId == id) return s.name;
-            }
-            return null;
-          }),
-        ),
         const SizedBox(height: 32),
         OutlinedButton(
           onPressed: () => Navigator.of(context).push(
@@ -532,6 +519,19 @@ class _MockExamResultView extends StatelessWidget {
             ),
             child: Text('間違えた${wrongQids.length}問を復習する'),
           ),
+        const SizedBox(height: 16),
+        // 結果分析（分野別の様子と「次にやる分野」）。今回の解答だけから作り、何も保存しない。
+        MockExamAnalysisCard(
+          analysis: const MockExamAnalysisEngine().analyze([
+            for (final q in questions) MockExamAnswer(topicId: q.topicId, correct: !wrongQids.contains(q.qid)),
+          ]),
+          topicLabel: topicLabelFor(questions, (id) {
+            for (final s in exam.subjects) {
+              if (s.subjectId == id) return s.name;
+            }
+            return null;
+          }),
+        ),
         const SizedBox(height: 12),
         OutlinedButton(
           onPressed: () => Navigator.of(context).pop(),

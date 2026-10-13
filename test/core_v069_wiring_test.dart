@@ -40,6 +40,14 @@ void main() {
       overrides: [entitlementServiceProvider.overrideWithValue(FakeEntitlementService()), ...studyNotesTestOverrides()],
       child: const UkalabBoki3App(),
     ));
+    await settle(tester);
+  }
+
+  /// アセット（問題データ）の読み込みは実時間で進むため、実際に少し待ってから描画を進める。
+  Future<void> settle(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
     await tester.pumpAndSettle();
   }
 
@@ -66,7 +74,7 @@ void main() {
       expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
 
       // 期限が来ているので、復習カードに「やってみる」ボタンがある。
@@ -155,10 +163,10 @@ void main() {
         overrides: studyNotesTestOverrides(),
         child: MaterialApp(home: MockExamPage(progressStore: InMemoryProgressStore())),
       ));
-      await tester.runAsync(() async {
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      });
-      for (var i = 0; i < 10 && find.text('模擬試験を開始する').evaluate().isEmpty; i++) {
+      for (var i = 0; i < 30 && find.text('模擬試験を開始する').evaluate().isEmpty; i++) {
+        await tester.runAsync(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        });
         await tester.pump(const Duration(milliseconds: 100));
       }
       await tester.tap(find.text('模擬試験を開始する'));
