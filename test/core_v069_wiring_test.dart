@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ukalab_boki3/exam_data/exam_data_cache.dart';
 import 'package:ukalab_boki3/main.dart';
 import 'package:ukalab_boki3/mock_exam/mock_exam_page.dart';
 import 'package:ukalab_boki3/oshi/oshi_growth_section.dart';
@@ -18,6 +19,13 @@ import 'test_support.dart';
 
 /// ukalab_core v0.67〜v0.69 の機能（今日の復習・模擬試験の結果分析・推しの成長演出）の組み込み確認。
 void main() {
+  // 問題データは全体でキャッシュされる。フェイク時間の中で読み始めると完了しないことがあるため、先に実時間で読み込む。
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await loadQuestions();
+    await loadExamConfig();
+  });
+
   final threeDaysAgo = DateTime.now().subtract(const Duration(days: 3));
 
   /// 3日前に12問答えた記録（6問不正解）。今日の復習の期限が来ていて、回答10問の節目にも届く。
@@ -77,8 +85,6 @@ void main() {
       await settle(tester);
       expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
 
-      // ignore: avoid_print
-      print('DBG home texts: ${tester.widgetList<Text>(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(Text))).map((t) => t.data).toList()}');
       // 期限が来ているので、復習カードに「やってみる」ボタンがある。
       expect(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(FilledButton)), findsOneWidget);
       expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
@@ -170,10 +176,6 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 100));
         });
         await tester.pump(const Duration(milliseconds: 100));
-      }
-      if (find.text('模擬試験を開始する').evaluate().isEmpty) {
-        // ignore: avoid_print
-        print('DBG mock texts: ${tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).toList()} ex=${tester.takeException()}');
       }
       await tester.tap(find.text('模擬試験を開始する'));
       await tester.pump();
