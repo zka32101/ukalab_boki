@@ -103,6 +103,54 @@ class _ExamPrepEntryCardState extends ConsumerState<ExamPrepEntryCard> {
   }
 }
 
+/// ホームの試験日カウントダウン（core の [ExamCountdownChip]）。無料。
+///
+/// 試験日が未設定なら何も出ない（core の仕様）。タップで試験日の設定画面を開く。
+/// 「試験に向けて」カード内の既存の試験日表示とは共存している（整理は別 PR）。
+class ExamCountdownEntry extends ConsumerWidget {
+  const ExamCountdownEntry({super.key, this.clock = DateTime.now});
+
+  final DateTime Function() clock;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final date = ref.watch(examDateProvider);
+    if (date == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: ExamCountdownChip(
+          examDate: date,
+          clock: clock,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const ExamDateSettingsPage()),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 試験日の設定画面（設定タブと同じ [ExamDateTile] を単独で開く）。
+class ExamDateSettingsPage extends ConsumerWidget {
+  const ExamDateSettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('試験日')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ExamDateTile(
+          date: ref.watch(examDateProvider),
+          onChanged: (d) => ref.read(examDateProvider.notifier).setDate(d),
+        ),
+      ),
+    );
+  }
+}
+
 /// 設定タブの、試験日・更新ログ・履歴書き出しの入口。
 class ExamPrepSettingsSection extends ConsumerWidget {
   const ExamPrepSettingsSection({super.key, required this.progressStore});
