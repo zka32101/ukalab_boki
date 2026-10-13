@@ -16,6 +16,7 @@ class ChoiceQuestionView extends StatefulWidget {
     this.onAnswered,
     this.onNext,
     this.revealResult = true,
+    this.feedbackBuilder,
   });
 
   final String prompt;
@@ -33,6 +34,9 @@ class ChoiceQuestionView extends StatefulWidget {
   /// false なら、答え合わせの正誤・解説を表示せず、選択したら即座に
   /// [onNext] を呼ぶ（模擬試験モード向け。本試験では解答中に正誤が分からない）。
   final bool revealResult;
+
+  /// 答え合わせ後に選択肢の下へ足す部品（解答後フィードバック）。選んだ選択肢の番号を受け取る。
+  final Widget Function(int selectedIndex)? feedbackBuilder;
 
   @override
   State<ChoiceQuestionView> createState() => _ChoiceQuestionViewState();
@@ -99,6 +103,11 @@ class _ChoiceQuestionViewState extends State<ChoiceQuestionView> {
                     state: _stateFor(i),
                     onTap: _answered ? null : () => setState(() => _selected = i),
                   ),
+                ),
+              if (_answered && widget.feedbackBuilder != null && _selected != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  child: widget.feedbackBuilder!(_selected!),
                 ),
             ],
           ),

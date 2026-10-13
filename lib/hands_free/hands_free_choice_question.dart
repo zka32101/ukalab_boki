@@ -16,6 +16,7 @@ class HandsFreeChoiceQuestion extends StatefulWidget {
     this.explanation,
     this.onAnswered,
     this.onNext,
+    this.feedbackBuilder,
   });
 
   final String prompt;
@@ -24,6 +25,9 @@ class HandsFreeChoiceQuestion extends StatefulWidget {
   final String? explanation;
   final void Function(int selectedIndex, bool correct)? onAnswered;
   final VoidCallback? onNext;
+
+  /// 答え合わせ後に足す解答後フィードバック（選んだ選択肢の番号を受け取る）。
+  final Widget Function(int selectedIndex)? feedbackBuilder;
 
   @override
   State<HandsFreeChoiceQuestion> createState() => _HandsFreeChoiceQuestionState();
@@ -72,6 +76,7 @@ class _HandsFreeChoiceQuestionState extends State<HandsFreeChoiceQuestion> {
             explanation: widget.explanation,
             onAnswered: widget.onAnswered,
             onNext: widget.onNext,
+            feedbackBuilder: widget.feedbackBuilder,
           );
         }
         final selected = _selected;
@@ -123,6 +128,10 @@ class _HandsFreeChoiceQuestionState extends State<HandsFreeChoiceQuestion> {
         if (widget.explanation != null && widget.explanation!.isNotEmpty) ...[
           const Divider(height: 32),
           ExplanationWithTerms(explanation: widget.explanation!),
+        ],
+        if (widget.feedbackBuilder != null) ...[
+          const SizedBox(height: 16),
+          widget.feedbackBuilder!(selected),
         ],
         const SizedBox(height: 24),
         if (widget.onNext != null)
