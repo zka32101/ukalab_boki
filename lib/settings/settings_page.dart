@@ -1,6 +1,6 @@
 import 'package:app_common_kit/app_common_kit.dart';
-import 'package:cross_promo_kit/cross_promo_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromoSection;
 
 import '../hands_free/hands_free_section.dart';
 import '../progress/progress_revision.dart';
@@ -101,10 +101,7 @@ class SettingsPage extends StatelessWidget {
           '非公式の学習アプリです。「日商簿記」は各団体の商標・登録商標である可能性があります。',
         ),
         // 掲載リストが空なら何も表示しない（余白も出ない）。大人向けのため isChildDirected は付けない。
-        const CrossPromoSection(
-          currentAppId: kCrossPromoAppId,
-          currentCategory: kCrossPromoCategory,
-        ),
+        const UkalabCrossPromoSection(currentAppId: kCrossPromoAppId),
         const SizedBox(height: 32),
         if (dataSection != null)
           dataSection!

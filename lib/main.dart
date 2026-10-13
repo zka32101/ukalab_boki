@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:app_common_kit/app_common_kit.dart';
-import 'package:cross_promo_kit/cross_promo_kit.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:ukalab_core/achievements.dart'
     show
         AchievementsView,
@@ -10,6 +8,7 @@ import 'package:ukalab_core/achievements.dart'
         dailyGoalAchievementCategoryLabels,
         dailyGoalAchievementsOverride,
         watchAchievementUnlocks;
+import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromo;
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/glossary.dart' show LearnedTermsStore;
 import 'package:ukalab_core/reminder.dart';
@@ -46,13 +45,8 @@ void main() async {
   await loadSavedThemeMode();
   await loadHandsFree();
 
-  // 相互紹介用の Firebase 初期化。firebase_options / google-services.json の配置前や
-  // Web・テストでは失敗するが、アプリ起動は止めない（別の try/catch）。
-  try {
-    await Firebase.initializeApp();
-  } catch (_) {}
-  // 掲載リストの取得は起動をブロックしない。失敗・空なら紹介セクションは何も表示しない。
-  unawaited(CrossPromoService.init());
+  // 相互紹介（Firebase 初期化＋掲載リスト取得）。失敗しても起動を止めず、起動もブロックしない。
+  unawaited(UkalabCrossPromo.init());
 
   // 課金（RevenueCat）。実際のAPIキー取得後にRevenueCatEntitlementServiceへ差し替える。
   // 価格は競合調査を踏まえた暫定値で、運営者確認が必要（決定14）。
