@@ -1,0 +1,241 @@
+import 'dart:convert';
+
+import 'package:app_common_kit/app_common_kit.dart' show FakeEntitlementService, entitlementServiceProvider;
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ukalab_boki3/exam_data/exam_data_cache.dart';
+import 'package:ukalab_boki3/main.dart';
+import 'package:ukalab_boki3/mock_exam/mock_exam_page.dart';
+import 'package:ukalab_boki3/oshi/oshi_growth_section.dart';
+import 'package:ukalab_boki3/review/today_review_section.dart';
+import 'package:ukalab_boki3/practice/choice_question_view.dart';
+import 'package:ukalab_boki3/review/review_schedule.dart';
+import 'package:ukalab_core/ui.dart';
+import 'package:ukalab_core/ukalab_core.dart';
+
+import 'test_support.dart';
+
+/// ukalab_core v0.67〜v0.69 の機能（今日の復習・模擬試験の結果分析・推しの成長演出）の組み込み確認。
+void main() {
+  // 問題データは全体でキャッシュされる。フェイク時間の中で読み始めると完了しないことがあるため、先に実時間で読み込む。
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await loadQuestions();
+    await loadExamConfig();
+  });
+
+  final threeDaysAgo = DateTime.now().subtract(const Duration(days: 3));
+
+  /// 3日前に12問答えた記録（6問不正解）。今日の復習の期限が来ていて、回答10問の節目にも届く。
+  Map<String, Object> seededPrefs() => {
+        'ukalab_boki3_progress_records': jsonEncode([
+          for (var i = 0; i < 12; i++)
+            ProgressRecord(qid: 'seed$i', subjectId: 'q1_shiwake', correct: i.isEven, at: threeDaysAgo).toJson(),
+        ]),
+      };
+
+  /// アセット（問題データ）の読み込みは実時間で進むため、実際に少し待ってから描画を進める。
+  Future<void> settle(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> pumpApp(WidgetTester tester, {required Size size, required double scale}) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = scale;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [entitlementServiceProvider.overrideWithValue(FakeEntitlementService()), ...studyNotesTestOverrides()],
+      child: const UkalabBoki3App(),
+    ));
+    await settle(tester);
+  }
+
+  Finder inGroup(String title, Type type) => find.descendant(
+        of: find.byWidgetPredicate((w) => w is HomeSection && w.title == title),
+        matching: find.byType(type, skipOffstage: false),
+      );
+
+  group('ホーム', () {
+    testWidgets('今日の復習は「今日やること」、推しの成長は「学習の記録」にある（見出しは4つのまま）', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpApp(tester, size: const Size(800, 6000), scale: 1.0);
+      expect(inGroup('今日やること', TodayReviewCard), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(find.byType(HomeSectionHeader), findsNWidgets(4));
+      expect(find.byType(OshiGrowthCelebrationCard), findsNothing); // 記録が無いので祝福は出ない
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('幅320・文字2倍でオーバーフローしない（ホーム全体）', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpApp(tester, size: const Size(320, 8000), scale: 2.0);
+      expect(inGroup('今日やること', TodayReviewCard), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(find.byType(HomeSectionHeader), findsNWidgets(4));
+      expect(tester.takeException(), isNull);
+    });
+
+    // 記録があると既存の「科目別の正答率」（progress_summary_card.dart）が幅320・文字2倍ではみ出すため、
+    // 追加した2つの部品（復習の期限あり／節目の祝福あり）を単体で確認する。
+    testWidgets('幅320・文字2倍でオーバーフローしない（追加した部品。復習の期限あり・節目の祝福あり）', (tester) async {
+      SharedPreferences.setMockInitialValues(seededPrefs());
+      tester.view.physicalSize = const Size(320, 8000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ListView(children: [
+            TodayReviewSection(progressStore: appProgressStore),
+            OshiGrowthSection(progressStore: appProgressStore),
+          ]),
+        ),
+      ));
+      await settle(tester);
+      expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
+      await settle(tester);
+      expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
+      expect(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(FilledButton)), findsOneWidget);
+      expect(find.byType(OshiGrowthBubble), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('節目の祝福は一度だけ（作り直しても同じ節目では出ない）', (tester) async {
+      SharedPreferences.setMockInitialValues(seededPrefs());
+      await pumpApp(tester, size: const Size(800, 6000), scale: 1.0);
+      expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
+      await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(const SizedBox());
+      await pumpApp(tester, size: const Size(800, 6000), scale: 1.0);
+      expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
+    });
+  });
+
+  group('今日の復習の予定', () {
+    final store = InMemoryProgressStore();
+    late InMemoryMistakeNoteStore notes;
+    late InMemoryReviewSchedulerStore schedule;
+
+    setUp(() async {
+      notes = InMemoryMistakeNoteStore();
+      schedule = InMemoryReviewSchedulerStore();
+      await store.clearRecords();
+      await store.addRecord(ProgressRecord(qid: 'a', subjectId: 's', correct: false, at: threeDaysAgo));
+      await store.addRecord(ProgressRecord(qid: 'b', subjectId: 's', correct: true, at: threeDaysAgo));
+    });
+
+    test('間違いノートから同期し、間違えた問題だけが期限に来る（何度呼んでも同じ）', () async {
+      final a = await syncReviewSchedule(
+          progressStore: store, noteStore: notes, scheduleStore: schedule, questions: const []);
+      final b = await syncReviewSchedule(
+          progressStore: store, noteStore: notes, scheduleStore: schedule, questions: const []);
+      expect([for (final i in a) i.qid], ['a']);
+      expect(b.length, 1);
+      expect(reviewSchedulerEngine.dueCount(b, DateTime.now()), 1);
+    });
+
+    test('期限に来ている問題の結果だけが反映される（期限前・予定外は変えない）', () async {
+      await syncReviewSchedule(progressStore: store, noteStore: notes, scheduleStore: schedule, questions: const []);
+      final now = DateTime.now();
+      await recordReviewResult('zzz', correct: true, now: now, store: schedule); // 予定外
+      expect((await schedule.read()).single.stage, 0);
+
+      await recordReviewResult('a', correct: true, now: now, store: schedule);
+      final after = (await schedule.read()).single;
+      expect(after.stage, 1);
+      expect(reviewSchedulerEngine.isDue(after, now), isFalse);
+
+      // 期限前の問題は、通常の演習で解いても段は進まない。
+      await recordReviewResult('a', correct: true, now: now, store: schedule);
+      expect((await schedule.read()).single.stage, 1);
+    });
+  });
+
+  group('推しの成長の入力', () {
+    test('回答数は記録の件数、学習日数は記録のある日の数（連続ではなく合計）', () {
+      final d = DateTime(2026, 10, 1, 9);
+      final p = oshiGrowthProgressFrom([
+        ProgressRecord(qid: 'a', subjectId: 's', correct: true, at: d),
+        ProgressRecord(qid: 'b', subjectId: 's', correct: false, at: d.add(const Duration(hours: 5))),
+        ProgressRecord(qid: 'c', subjectId: 's', correct: true, at: d.add(const Duration(days: 5))),
+      ]);
+      expect(p.totalAnswered, 3);
+      expect(p.studyDays, 2);
+      expect(oshiGrowthProgressFrom(const []).totalAnswered, 0);
+    });
+  });
+
+  group('模擬試験の結果画面', () {
+    testWidgets('結果画面に分析カードが出る', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(800, 8000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(ProviderScope(
+        overrides: studyNotesTestOverrides(),
+        child: MaterialApp(home: MockExamPage(progressStore: InMemoryProgressStore())),
+      ));
+      for (var i = 0; i < 30 && find.text('模擬試験を開始する').evaluate().isEmpty; i++) {
+        await tester.runAsync(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        });
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.tap(find.text('模擬試験を開始する'));
+      await tester.pump();
+      for (var i = 0; i < 20; i++) {
+        if (find.byType(ChoiceQuestionView).evaluate().isNotEmpty) {
+          await tester.tap(find.byType(InkWell).first);
+          await tester.pump();
+        }
+        await tester.tap(find.text('次へ'));
+        await tester.pump();
+      }
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(MockExamAnalysisCard), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    // 解答中の画面（既存）は幅320・文字2倍ではみ出すため、分析カード単体で確認する。
+    testWidgets('分析カードは幅320・文字2倍でオーバーフローしない', (tester) async {
+      tester.view.physicalSize = const Size(320, 4000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final analysis = const MockExamAnalysisEngine().analyze([
+        for (var i = 0; i < 4; i++) MockExamAnswer(topicId: 'q1_shiwake', correct: i == 0),
+        for (var i = 0; i < 4; i++) const MockExamAnswer(topicId: 'q2_choubo', correct: true),
+        for (var i = 0; i < 3; i++) MockExamAnswer(topicId: 'q3_kessan', correct: i == 0),
+      ]);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ListView(children: [
+            MockExamAnalysisCard(analysis: analysis, topicLabel: (id) => '第1問 仕訳（$id）'),
+          ]),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byType(MockExamAnalysisCard), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+}

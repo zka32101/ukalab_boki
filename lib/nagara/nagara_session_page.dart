@@ -12,6 +12,7 @@ import '../exam_data/current_level.dart';
 import '../exam_data/exam_data_cache.dart';
 import '../hands_free/hands_free_state.dart';
 import '../progress/progress_revision.dart';
+import '../review/review_schedule.dart' show recordReviewResult;
 
 /// 1 回の「ながら学習」で出す問題数の上限。超えたら「ひと休み」を促して終える。
 const int kNagaraMaxQuestions = 20;
@@ -92,12 +93,15 @@ class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
   /// 通常の演習（PracticePage）と同じ記録経路: デイリーミッション・解答記録・進捗の再読込・学習日。
   void _record(Question q, {required bool correct}) {
     unawaited(recordDailyAnswer(ref));
+    final now = DateTime.now();
     unawaited(
       widget.progressStore
           .addRecord(
-            ProgressRecord(qid: q.qid, subjectId: q.subjectId, correct: correct, at: DateTime.now()),
+            ProgressRecord(qid: q.qid, subjectId: q.subjectId, correct: correct, at: now),
           )
-          .then((_) {
+          .then((_) async {
+            // 「今日の復習」の期限に来ている問題なら結果を反映する（履歴と同じ時刻で）。
+            await recordReviewResult(q.qid, correct: correct, now: now);
             progressRevision.value++;
             unawaited(recordStudyToday());
           }),
