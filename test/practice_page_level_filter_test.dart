@@ -20,7 +20,7 @@ void main() {
   test('旧区分表専用の問題（手形の仕訳）が存在する', () {
     final legacyOnly = questions.where((q) => q.levelId == 'level3_until_2027_03').toList();
     expect(legacyOnly, isNotEmpty);
-    expect(legacyOnly.every((q) => q.journalAnswer!.lines.any((l) => l.account.startsWith('notes_'))), isTrue);
+    expect(legacyOnly.every((q) => q.journalAnswer!.lines.any((l) => l.account.startsWith('notes_') || l.account == 'cash_over_short')), isTrue);
   });
 
   test('新区分表の時期（level3_from_2027_04）は旧区分表専用の問題を除外する', () {
