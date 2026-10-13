@@ -187,16 +187,44 @@ class _HomePage extends StatelessWidget {
         Boki3OshiCard(store: appProgressStore),
         // 推しの一言（無料）。タップで別の一言。
         OshiMessageCard(progressStore: appProgressStore),
-        const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
-        const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
-        const ExamCountdownEntry(),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: ExamPrepEntryCard(progressStore: appProgressStore)),
-        ProgressSummaryCard(store: appProgressStore),
-        // 週間ふりかえり（無料。今週できたことだけを見せる）。
-        WeeklyRecapSection(progressStore: appProgressStore),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Card(child: MistakeNoteTile(progressStore: appProgressStore)),
+        // 見出しで4つに分ける（既存の専用カードはそのまま置く。折りたたみは要素が少ないため使わない）。
+        const HomeSection(
+          title: '今日やること',
+          child: Column(
+            children: [
+              Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
+              Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
+            ],
+          ),
+        ),
+        HomeSection(
+          title: '記録',
+          child: Column(
+            children: [
+              ProgressSummaryCard(store: appProgressStore),
+              // 週間ふりかえり（無料。今週できたことだけを見せる）。
+              WeeklyRecapSection(progressStore: appProgressStore),
+            ],
+          ),
+        ),
+        HomeSection(
+          title: '試験に向けて',
+          child: Column(
+            children: [
+              const ExamCountdownEntry(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ExamPrepEntryCard(progressStore: appProgressStore),
+              ),
+            ],
+          ),
+        ),
+        HomeSection(
+          title: '道具',
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Card(child: MistakeNoteTile(progressStore: appProgressStore)),
+          ),
         ),
       ],
     );
