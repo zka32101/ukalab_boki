@@ -25,6 +25,7 @@ import 'oshi/boki3_oshi_card.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
 import 'purchase/weak_drill_card.dart';
+import 'purchase/weak_summary_section.dart';
 import 'reading/reading_list_page.dart';
 import 'progress/progress_summary_card.dart';
 import 'records/records_page.dart';
@@ -234,6 +235,7 @@ class _LearnPage extends StatelessWidget {
           child: const Text('すべての問題を練習する（問題集）'),
         ),
         const SizedBox(height: 8),
+        WeakSummarySection(progressStore: appProgressStore),
         WeakDrillCard(progressStore: appProgressStore),
         const SizedBox(height: 24),
         Text('用語を調べる', style: theme.textTheme.titleMedium),

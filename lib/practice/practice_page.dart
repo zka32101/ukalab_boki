@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel;
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
@@ -14,6 +15,7 @@ import '../journal_input/account_catalog.dart';
 import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../progress/progress_revision.dart';
+import '../progress/progress_store.dart' show attachCause;
 import '../voucher_input/voucher_kind.dart';
 import '../voucher_input/voucher_question_view.dart';
 import '../worksheet_input/worksheet_question_view.dart';
@@ -262,6 +264,15 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             _recordProgress(current.qid, current.subjectId, correct: correct);
           },
           onNext: () => setState(() {}),
+          // 選択式には独自の誤答診断が無いので、共通の原因ラベル・対策で補う。
+          // 仕訳・帳簿・精算表は結果バナーの行ごとの診断があるため、重ねて出さない。
+          feedbackBuilder: (selectedIndex) => AnswerFeedbackPanel(
+            key: ValueKey('feedback-${current.qid}'),
+            question: current,
+            selectedIndex: selectedIndex,
+            includeCalculation: false,
+            onCause: (c) => unawaited(attachCause(widget.progressStore, current.qid, c)),
+          ),
         );
       case QuestionType.worksheet:
         return WorksheetQuestionView(
