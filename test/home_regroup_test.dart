@@ -34,7 +34,7 @@ void main() {
   }
 
   void expectAll() {
-    for (final t in const ['今日やること', '記録', '試験に向けて', '道具']) {
+    for (final t in const ['今日やること', '学習の記録', '試験に向けて', '道具']) {
       expect(find.text(t), findsOneWidget, reason: t);
     }
     expect(find.byType(HomeSectionHeader), findsNWidgets(4));

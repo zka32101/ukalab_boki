@@ -198,7 +198,7 @@ class _HomePage extends StatelessWidget {
           ),
         ),
         HomeSection(
-          title: '記録',
+          title: '学習の記録',
           child: Column(
             children: [
               ProgressSummaryCard(store: appProgressStore),
