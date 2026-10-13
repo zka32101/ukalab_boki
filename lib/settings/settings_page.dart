@@ -1,9 +1,11 @@
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:cross_promo_kit/cross_promo_kit.dart';
 import 'package:flutter/material.dart';
 
 import '../hands_free/hands_free_section.dart';
 import '../progress/progress_revision.dart';
 import '../progress/progress_store.dart';
+import 'cross_promo_config.dart';
 
 /// 「設定」タブ。アプリの説明と、解答記録をリセットする機能を提供する。
 class SettingsPage extends StatelessWidget {
@@ -97,6 +99,11 @@ class SettingsPage extends StatelessWidget {
         const Text(
           '「うかラボ 簿記3級」は、日本商工会議所および各地商工会議所とは一切関係のない、'
           '非公式の学習アプリです。「日商簿記」は各団体の商標・登録商標である可能性があります。',
+        ),
+        // 掲載リストが空なら何も表示しない（余白も出ない）。大人向けのため isChildDirected は付けない。
+        const CrossPromoSection(
+          currentAppId: kCrossPromoAppId,
+          currentCategory: kCrossPromoCategory,
         ),
         const SizedBox(height: 32),
         if (dataSection != null)

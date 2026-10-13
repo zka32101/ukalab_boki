@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:cross_promo_kit/cross_promo_kit.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:ukalab_core/achievements.dart'
     show
         AchievementsView,
@@ -41,6 +45,14 @@ void main() async {
   await migrateLegacyProgressKeys();
   await loadSavedThemeMode();
   await loadHandsFree();
+
+  // 相互紹介用の Firebase 初期化。firebase_options / google-services.json の配置前や
+  // Web・テストでは失敗するが、アプリ起動は止めない（別の try/catch）。
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {}
+  // 掲載リストの取得は起動をブロックしない。失敗・空なら紹介セクションは何も表示しない。
+  unawaited(CrossPromoService.init());
 
   // 課金（RevenueCat）。実際のAPIキー取得後にRevenueCatEntitlementServiceへ差し替える。
   // 価格は競合調査を踏まえた暫定値で、運営者確認が必要（決定14）。

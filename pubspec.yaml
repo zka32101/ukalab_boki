@@ -29,6 +29,15 @@ dependencies:
   # ながら学習モードの読み上げ（端末標準の音声合成）
   purchases_flutter: ">=9.0.0 <11.0.0"
 
+  # 相互紹介（Remote Config 配信）。タグ固定、main は参照しない。
+  # firebase_core 4.x（ロック済み）と組む firebase_remote_config 6.x（kit の許容 >=4.0.0 <7.0.0）。
+  firebase_core: ^4.0.0
+  firebase_remote_config: ^6.0.0
+  cross_promo_kit:
+    git:
+      url: https://github.com/zka32101/cross_promo_kit
+      ref: v0.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
