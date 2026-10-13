@@ -51,4 +51,12 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('見出し「借方金額」と「貸方科目」が詰まって1語に見えない（360dp幅）', (tester) async {
+    await pumpWithAmounts(tester, '1');
+
+    final debitAmount = tester.getRect(find.text('借方金額'));
+    final creditAccount = tester.getRect(find.text('貸方科目'));
+    expect(creditAccount.left - debitAmount.right, greaterThanOrEqualTo(4));
+  });
 }
