@@ -339,8 +339,11 @@ void main() {
     testWidgets('設定のタイルから間違いノートが開ける', (tester) async {
       await _pump(tester, MistakeNoteTile(progressStore: await _store(const [])));
       await tester.tap(find.text('間違いノート'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(MistakeNotePage), findsOneWidget);
+      await _settle(tester);
+      expect(find.text(MistakeNoteStrings.ja.emptyUpcomingTitle), findsOneWidget);
     });
   });
 
