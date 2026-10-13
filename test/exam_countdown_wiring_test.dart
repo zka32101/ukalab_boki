@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ukalab_boki3/exam_prep/exam_prep_data.dart';
 import 'package:ukalab_boki3/exam_prep/exam_prep_entry.dart';
 import 'package:ukalab_core/ui.dart';
+import 'package:ukalab_core/ukalab_core.dart';
 
 import 'test_support.dart';
 
