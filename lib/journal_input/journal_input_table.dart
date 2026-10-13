@@ -81,12 +81,17 @@ class _TableHeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.labelMedium;
+    // 下の入力セルと同じ左右の余白を持たせ、隣の見出し（借方金額｜貸方科目）が詰まらないようにする。
+    Widget label(String text, {bool alignEnd = false}) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Text(text, style: style, textAlign: alignEnd ? TextAlign.right : TextAlign.left),
+        );
     return Row(
       children: [
-        Expanded(flex: 4, child: Text('借方科目', style: style)),
-        Expanded(flex: 3, child: Text('借方金額', style: style, textAlign: TextAlign.right)),
-        Expanded(flex: 4, child: Text('貸方科目', style: style)),
-        Expanded(flex: 3, child: Text('貸方金額', style: style, textAlign: TextAlign.right)),
+        Expanded(flex: 4, child: label('借方科目')),
+        Expanded(flex: 3, child: label('借方金額', alignEnd: true)),
+        Expanded(flex: 4, child: label('貸方科目')),
+        Expanded(flex: 3, child: label('貸方金額', alignEnd: true)),
         const SizedBox(width: 32),
       ],
     );
