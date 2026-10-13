@@ -22,6 +22,8 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('他のアプリもチェック！'), findsNothing);
+    // 設定項目が増えて画面外になったので、スクロールして出す。
+    await tester.scrollUntilVisible(find.text('解答記録をリセットする'), 200);
     expect(find.text('解答記録をリセットする'), findsOneWidget);
   });
 

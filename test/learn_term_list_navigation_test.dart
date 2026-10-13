@@ -22,6 +22,7 @@ void main() {
 
     await tester.tap(find.text('学ぶ'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('用語集'), 100);
     await tester.tap(find.text('用語集'));
     await tester.pump();
     await tester.runAsync(() async {

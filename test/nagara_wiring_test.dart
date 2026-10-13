@@ -103,8 +103,8 @@ void main() {
     expect(speech.stopCount, greaterThan(0));
   });
 
-  test('出題は選択式だけで、復習が必要な問題が先頭に来る', () async {
-    final all = await loadQuestions();
+  testWidgets('出題は選択式だけで、復習が必要な問題が先頭に来る', (tester) async {
+    final all = (await tester.runAsync(loadQuestions))!;
     final picked = pickNagaraQuestions(all, const [], random: Random(1));
     expect(picked, isNotEmpty);
     expect(picked.every((q) => q.type == QuestionType.choice), isTrue);
@@ -153,7 +153,7 @@ void main() {
   });
 
   testWidgets('誤答は解答記録（間違いノートの元）に載り、解説も読む', (tester) async {
-    final store = await pumpPage(tester, [_q('a'), _q('b')]);
+    final store = await pumpPage(tester, [_q('a')]);
 
     await tester.tap(find.text('誤り-a'));
     await tester.pump();
@@ -171,10 +171,11 @@ void main() {
   testWidgets('正解は、終わったときに解答記録に載る', (tester) async {
     final store = await pumpPage(tester, [_q('a'), _q('b')]);
 
-    await tester.tap(find.text('正しい-a'));
+    // 出題順はランダムなので、いま出ている問題の正解を押す。
+    await tester.tap(find.textContaining('正しい-'));
     await tester.pump();
     await _tick(tester, 3);
-    await tester.tap(find.text('正しい-b'));
+    await tester.tap(find.textContaining('正しい-'));
     await tester.pump();
     await _tick(tester, 3);
 
