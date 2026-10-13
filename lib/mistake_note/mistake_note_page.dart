@@ -5,7 +5,6 @@ import 'package:ukalab_core/ukalab_core.dart';
 import '../exam_data/exam_data_cache.dart';
 import '../oshi/oshi_recap.dart';
 import '../practice/practice_page.dart';
-import '../progress/progress_store.dart';
 import 'mistake_note_data.dart';
 
 /// 間違いノート。ukalab_core の [MistakeNoteView] に、このアプリの履歴・保存先・出題画面をつなぐ。

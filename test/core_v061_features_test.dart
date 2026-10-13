@@ -12,7 +12,6 @@ import 'package:ukalab_boki3/mistake_note/mistake_note_page.dart';
 import 'package:ukalab_boki3/oshi/oshi_home_cards.dart';
 import 'package:ukalab_boki3/oshi/oshi_recap.dart';
 import 'package:ukalab_boki3/practice/practice_page.dart';
-import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'package:ukalab_boki3/settings/boki_data_parts.dart';
 import 'package:ukalab_boki3/company_mode/company_mode_history_store.dart';
 import 'package:ukalab_boki3/worksheet_input/worksheet_question_view.dart';
@@ -176,7 +175,7 @@ void main() {
   });
 
   group('週間ふりかえり(ホーム)', () {
-    final strings = WeeklyRecapStrings.ja;
+    const strings = WeeklyRecapStrings.ja;
 
     testWidgets('今週解いていれば、できたことが出る', (tester) async {
       await _pump(
@@ -222,7 +221,7 @@ void main() {
   });
 
   group('間違いノート', () {
-    final strings = MistakeNoteStrings.ja;
+    const strings = MistakeNoteStrings.ja;
 
     Future<void> pumpPage(
       WidgetTester tester, {
