@@ -1,6 +1,5 @@
-/// 相互紹介で自アプリを掲載リストから除外するための ID。
+/// 相互紹介で自アプリを掲載リストから除外するための ID（本番の applicationId）。
 ///
-/// TODO(要確認): 本番の Android applicationId に置き換える。
-/// このリポジトリには android/ が無く、CI・README にも記載がないため未確定。
-/// 推測値は入れない（仮の値だと自アプリが自分のリストに出る）。
-const String kCrossPromoAppId = 'TODO.confirm.production.application.id';
+/// 他のうかラボ（g_kentei / seisei_ai_passport）の `com.yourwish.ukalab.<アプリ名>` に合わせた値。
+/// Play Console で登録する applicationId と完全一致させること（不一致だと自アプリが自分のリストに出る）。
+const String kCrossPromoAppId = 'com.yourwish.ukalab.boki3';
