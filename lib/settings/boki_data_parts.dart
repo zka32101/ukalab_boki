@@ -4,17 +4,19 @@ import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/ui.dart';
 
 import '../company_mode/company_mode_history_store.dart';
+import '../mistake_note/mistake_note_data.dart';
 import '../progress/progress_revision.dart';
 import '../progress/progress_store.dart';
 
 /// 設定タブの「データの管理」（書き出し・読み込み・リセット）の対象。
 ///
-/// 解答記録、会社経営モードの履歴、「覚えた」にした用語、デイリーミッション、自分用メモが対象。
+/// 解答記録、会社経営モードの履歴、「覚えた」にした用語、デイリーミッション、自分用メモ、間違いノートが対象。
 /// テーマ・購入・ブックマークは含めない。
 List<DataPart> bokiDataParts({
   required ProgressStore progressStore,
   required CompanyModeHistoryStore companyModeHistoryStore,
   required LearnedTermsStore learnedTermsStore,
+  MistakeNoteStore? mistakeNotes,
 }) =>
     [
       achievementUnlockDataPart,
@@ -72,4 +74,6 @@ List<DataPart> bokiDataParts({
             ref.read(questionMemoProvider.notifier).restore((json as Map<String, dynamic>).cast<String, String>()),
         reset: (ref) => ref.read(questionMemoProvider.notifier).reset(),
       ),
+      // 間違いノート（間違えた問題ID・日時・原因・分野・回数。端末内）。
+      mistakeNoteDataPart(mistakeNotes ?? mistakeNoteStore),
     ];

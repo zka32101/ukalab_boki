@@ -21,8 +21,10 @@ import 'exam_data/exam_data_cache.dart';
 import 'exam_prep/exam_prep_entry.dart';
 import 'hands_free/hands_free_state.dart';
 import 'company_mode/company_scenario_list_page.dart';
+import 'mistake_note/mistake_note_page.dart';
 import 'mock_exam/mock_exam_page.dart';
 import 'oshi/boki3_oshi_card.dart';
+import 'oshi/oshi_home_cards.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
 import 'purchase/weak_drill_card.dart';
@@ -131,7 +133,9 @@ class UkalabBoki3App extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ExamPrepSettingsSection(progressStore: appProgressStore),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+                  MistakeNoteTile(progressStore: appProgressStore, contentPadding: EdgeInsets.zero),
+                  const SizedBox(height: 16),
                   const DailyGoalSetting(),
                   const SizedBox(height: 32),
                   const ReminderSettingsSection(showMockReminder: false),
@@ -142,7 +146,7 @@ class UkalabBoki3App extends ConsumerWidget {
                       companyModeHistoryStore: appCompanyModeHistoryStore,
                       learnedTermsStore: LearnedTermsStore('boki3'),
                     ),
-                    description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・デイリーミッション・自分用メモは、'
+                    description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・デイリーミッション・自分用メモ・間違いノートは、'
                         'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
                   ),
                   const SizedBox(height: 16),
@@ -180,10 +184,18 @@ class _HomePage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Boki3OshiCard(store: appProgressStore),
+        // 推しの一言（無料）。タップで別の一言。
+        OshiMessageCard(progressStore: appProgressStore),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: ExamPrepEntryCard(progressStore: appProgressStore)),
         ProgressSummaryCard(store: appProgressStore),
+        // 週間ふりかえり（無料。今週できたことだけを見せる）。
+        WeeklyRecapSection(progressStore: appProgressStore),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Card(child: MistakeNoteTile(progressStore: appProgressStore)),
+        ),
       ],
     );
   }
