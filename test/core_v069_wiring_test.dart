@@ -28,6 +28,14 @@ void main() {
         ]),
       };
 
+  /// アセット（問題データ）の読み込みは実時間で進むため、実際に少し待ってから描画を進める。
+  Future<void> settle(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pumpAndSettle();
+  }
+
   Future<void> pumpApp(WidgetTester tester, {required Size size, required double scale}) async {
     tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
@@ -41,14 +49,6 @@ void main() {
       child: const UkalabBoki3App(),
     ));
     await settle(tester);
-  }
-
-  /// アセット（問題データ）の読み込みは実時間で進むため、実際に少し待ってから描画を進める。
-  Future<void> settle(WidgetTester tester) async {
-    await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await tester.pumpAndSettle();
   }
 
   Finder inGroup(String title, Type type) => find.descendant(
