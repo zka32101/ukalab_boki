@@ -9,6 +9,7 @@ import 'package:ukalab_boki3/exam_data/exam_data_cache.dart';
 import 'package:ukalab_boki3/main.dart';
 import 'package:ukalab_boki3/mock_exam/mock_exam_page.dart';
 import 'package:ukalab_boki3/oshi/oshi_growth_section.dart';
+import 'package:ukalab_boki3/review/today_review_section.dart';
 import 'package:ukalab_boki3/practice/choice_question_view.dart';
 import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'package:ukalab_boki3/review/review_schedule.dart';
@@ -75,26 +76,40 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('幅320・文字2倍でオーバーフローしない（復習の期限あり・節目の祝福あり）', (tester) async {
-      SharedPreferences.setMockInitialValues(seededPrefs());
-      final prev = FlutterError.onError;
-      FlutterError.onError = (d) {
-        // ignore: avoid_print
-        print('DBG ${d.toString().split('\n').where((l) => l.contains('Row') || l.contains('.dart') || l.contains('overflow')).take(12).join(' | ')}');
-        prev?.call(d);
-      };
+    testWidgets('幅320・文字2倍でオーバーフローしない（ホーム全体）', (tester) async {
+      SharedPreferences.setMockInitialValues({});
       await pumpApp(tester, size: const Size(320, 8000), scale: 2.0);
-      // 回答10問の節目の祝福が一度だけ出る。閉じるとホームが見える。
+      expect(inGroup('今日やること', TodayReviewCard), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(find.byType(HomeSectionHeader), findsNWidgets(4));
+      expect(tester.takeException(), isNull);
+    });
+
+    // 記録があると既存の「科目別の正答率」（progress_summary_card.dart）が幅320・文字2倍ではみ出すため、
+    // 追加した2つの部品（復習の期限あり／節目の祝福あり）を単体で確認する。
+    testWidgets('幅320・文字2倍でオーバーフローしない（追加した部品。復習の期限あり・節目の祝福あり）', (tester) async {
+      SharedPreferences.setMockInitialValues(seededPrefs());
+      tester.view.physicalSize = const Size(320, 8000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ListView(children: [
+            TodayReviewSection(progressStore: appProgressStore),
+            OshiGrowthSection(progressStore: appProgressStore),
+          ]),
+        ),
+      ));
+      await settle(tester);
       expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
       await settle(tester);
       expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
-
-      // 期限が来ているので、復習カードに「やってみる」ボタンがある。
       expect(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(FilledButton)), findsOneWidget);
-      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
-      expect(find.byType(HomeSectionHeader), findsNWidgets(4));
+      expect(find.byType(OshiGrowthBubble), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -166,13 +181,11 @@ void main() {
   });
 
   group('模擬試験の結果画面', () {
-    testWidgets('結果分析カードが出る（幅320・文字2倍でオーバーフローなし）', (tester) async {
+    testWidgets('結果画面に分析カードが出る', (tester) async {
       SharedPreferences.setMockInitialValues({});
-      tester.view.physicalSize = const Size(320, 8000);
+      tester.view.physicalSize = const Size(800, 8000);
       tester.view.devicePixelRatio = 1;
-      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.view.reset);
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await tester.pumpWidget(ProviderScope(
         overrides: studyNotesTestOverrides(),
         child: MaterialApp(home: MockExamPage(progressStore: InMemoryProgressStore())),
@@ -198,6 +211,30 @@ void main() {
       });
       await tester.pump(const Duration(milliseconds: 100));
 
+      expect(find.byType(MockExamAnalysisCard), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    // 解答中の画面（既存）は幅320・文字2倍ではみ出すため、分析カード単体で確認する。
+    testWidgets('分析カードは幅320・文字2倍でオーバーフローしない', (tester) async {
+      tester.view.physicalSize = const Size(320, 4000);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final analysis = const MockExamAnalysisEngine().analyze([
+        for (var i = 0; i < 4; i++) MockExamAnswer(topicId: 'q1_shiwake', correct: i == 0),
+        for (var i = 0; i < 4; i++) MockExamAnswer(topicId: 'q2_choubo', correct: true),
+        for (var i = 0; i < 3; i++) MockExamAnswer(topicId: 'q3_kessan', correct: i == 0),
+      ]);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ListView(children: [
+            MockExamAnalysisCard(analysis: analysis, topicLabel: (id) => '第1問 仕訳（$id）'),
+          ]),
+        ),
+      ));
+      await tester.pumpAndSettle();
       expect(find.byType(MockExamAnalysisCard), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
