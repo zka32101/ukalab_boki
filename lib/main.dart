@@ -188,6 +188,7 @@ class _HomePage extends StatelessWidget {
         OshiMessageCard(progressStore: appProgressStore),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
+        const ExamCountdownEntry(),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: ExamPrepEntryCard(progressStore: appProgressStore)),
         ProgressSummaryCard(store: appProgressStore),
         // 週間ふりかえり（無料。今週できたことだけを見せる）。
