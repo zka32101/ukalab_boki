@@ -161,6 +161,7 @@ void main() {
 
     final records = await tester.runAsync(store.loadRecords) ?? [];
     expect(records, hasLength(1));
+    // onAnswered に一本化しているので二重に載らない(上の hasLength(1))。
     expect(records.single.qid, 'a');
     expect(records.single.correct, isFalse);
     expect(records.single.subjectId, 'q2_choubo');
@@ -168,21 +169,58 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('正解は、終わったときに解答記録に載る', (tester) async {
+  testWidgets('正解のタップ回答も、1問ごとにすぐ解答記録に載る', (tester) async {
     final store = await pumpPage(tester, [_q('a'), _q('b')]);
 
     // 出題順はランダムなので、いま出ている問題の正解を押す。
     await tester.tap(find.textContaining('正しい-'));
     await tester.pump();
+    var records = await tester.runAsync(store.loadRecords) ?? [];
+    expect(records, hasLength(1));
+    expect(records.single.correct, isTrue);
+
     await _tick(tester, 3);
     await tester.tap(find.textContaining('正しい-'));
     await tester.pump();
     await _tick(tester, 3);
 
     expect(find.text('おつかれさまでした'), findsOneWidget);
-    final records = await tester.runAsync(store.loadRecords) ?? [];
+    records = await tester.runAsync(store.loadRecords) ?? [];
     expect(records.map((r) => r.qid).toSet(), {'a', 'b'});
+    expect(records, hasLength(2));
     expect(records.every((r) => r.correct), isTrue);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('スキップした問題は記録しない', (tester) async {
+    final store = await pumpPage(tester, [_q('a'), _q('b')]);
+    await tester.tap(find.text(NagaraStrings.ja.skip));
+    await tester.pump();
+    await tester.tap(find.text(NagaraStrings.ja.stop));
+    await tester.pump();
+    expect(await tester.runAsync(store.loadRecords), isEmpty);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('間違えた問題を正解すると、最新の記録が正解になる(間違いノートの克服)', (tester) async {
+    final store = InMemoryProgressStore();
+    await store.addRecord(ProgressRecord(
+        qid: 'a', subjectId: 'q2_choubo', correct: false, at: DateTime.now().subtract(const Duration(days: 1))));
+    await tester.pumpWidget(ProviderScope(
+      overrides: studyNotesTestOverrides(),
+      child: MaterialApp(
+        home: NagaraSessionPage(progressStore: store, questionLoader: () async => [_q('a')]),
+      ),
+    ));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text('正しい-a'));
+    await tester.pump();
+    final records = await tester.runAsync(store.loadRecords) ?? [];
+    expect(records, hasLength(2));
+    expect(records.last.qid, 'a');
+    expect(records.last.correct, isTrue);
+    expect(reviewPriorityQids(records), isNot(contains('a')));
     await tester.pumpWidget(const SizedBox());
   });
 

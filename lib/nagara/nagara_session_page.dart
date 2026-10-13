@@ -79,10 +79,7 @@ class _BoundHandsFreeNotifier extends HandsFreeNotifier {
 class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
   late final Future<List<Question>> _future = _load();
   final Map<String, Question> _byQid = {};
-  final Set<String> _wrong = {};
-  final Set<String> _unanswered = {};
   List<Question> _picked = const [];
-  bool _flushed = false;
 
   Future<List<Question>> _load() async {
     final all = await widget.questionLoader();
@@ -107,31 +104,11 @@ class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
     );
   }
 
-  void _onWrong(NagaraQuestion nq, int chosen) {
-    _wrong.add(nq.id);
+  /// タップで答えが確定したとき（正答・誤答とも）。未回答・スキップでは呼ばれない。
+  /// 記録はここに一本化している（`onWrongAnswer` は使わないので二重記録にならない）。
+  void _onAnswered(NagaraQuestion nq, int chosen, bool correct) {
     final q = _byQid[nq.id];
-    if (q != null) _record(q, correct: false);
-  }
-
-  void _onUnanswered(NagaraQuestion nq) => _unanswered.add(nq.id);
-
-  /// kit は正解した問題を個別には通知しないので、終わったときに数を突き合わせて記録する。
-  /// 誤答・時間切れの通知がない問題は「正解」か「スキップ」のどちらかで、区別がつかない。
-  /// 件数が [NagaraSessionState.correctCount] と一致するとき（スキップなし）だけ正解として記録し、
-  /// 一致しないときは誤って正解にしないよう記録しない。
-  void _onFinished(NagaraSessionState summary) {
-    if (_flushed) return;
-    _flushed = true;
-    final done = _picked.take(summary.completed).toList();
-    final candidates = [
-      for (final q in done)
-        if (!_wrong.contains(q.qid) && !_unanswered.contains(q.qid)) q,
-    ];
-    if (candidates.length == summary.correctCount) {
-      for (final q in candidates) {
-        _record(q, correct: true);
-      }
-    }
+    if (q != null) _record(q, correct: correct);
   }
 
   @override
@@ -169,9 +146,7 @@ class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
                     ),
                 ],
                 maxQuestions: widget.maxQuestions,
-                onWrongAnswer: _onWrong,
-                onUnanswered: _onUnanswered,
-                onFinished: _onFinished,
+                onAnswered: _onAnswered,
                 onClose: () => Navigator.of(context).maybePop(),
               ),
             );
