@@ -13,7 +13,7 @@ class HandsFreeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final t = NagaraStrings.ja;
+    const t = NagaraStrings.ja;
     return ValueListenableBuilder<HandsFreeSettings>(
       valueListenable: appHandsFree,
       builder: (context, settings, _) => Column(

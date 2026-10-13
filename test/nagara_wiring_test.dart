@@ -11,7 +11,6 @@ import 'package:ukalab_boki3/hands_free/hands_free_section.dart';
 import 'package:ukalab_boki3/hands_free/hands_free_state.dart';
 import 'package:ukalab_boki3/main.dart';
 import 'package:ukalab_boki3/nagara/nagara_session_page.dart';
-import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import 'test_support.dart';
