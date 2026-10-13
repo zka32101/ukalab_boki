@@ -22,6 +22,7 @@ import 'exam_prep/exam_prep_entry.dart';
 import 'hands_free/hands_free_state.dart';
 import 'company_mode/company_scenario_list_page.dart';
 import 'mistake_note/mistake_note_page.dart';
+import 'nagara/nagara_session_page.dart';
 import 'mock_exam/mock_exam_page.dart';
 import 'oshi/boki3_oshi_card.dart';
 import 'oshi/oshi_home_cards.dart';
@@ -250,6 +251,20 @@ class _LearnPage extends StatelessWidget {
             MaterialPageRoute(builder: (_) => PracticePage(progressStore: appProgressStore)),
           ),
           child: const Text('すべての問題を練習する（問題集）'),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => NagaraSessionPage(progressStore: appProgressStore)),
+            ),
+            icon: const Icon(Icons.headphones_outlined),
+            label: const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('ながら学習（選択式を読み上げで自動で進める）'),
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         WeakSummarySection(progressStore: appProgressStore),
