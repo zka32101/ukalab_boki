@@ -18,6 +18,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // 設定項目が増えて画面外になったので、スクロールして出す。
+    await tester.scrollUntilVisible(find.text('解答記録をリセットする'), 200);
     expect(find.text('解答記録をリセットする'), findsOneWidget);
     await tester.tap(find.text('解答記録をリセットする'));
     await tester.pumpAndSettle();

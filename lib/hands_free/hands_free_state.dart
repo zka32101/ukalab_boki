@@ -15,16 +15,29 @@ SpeechBackend? _defaultBackend;
 @visibleForTesting
 set appSpeechBackendForTest(SpeechBackend? backend) => _backendOverride = backend;
 
-class _CurrentBackend implements SpeechBackend {
+class _CurrentBackend implements AwaitableSpeechBackend {
   SpeechBackend get _current =>
       _backendOverride ?? (_defaultBackend ??= FlutterTtsSpeechBackend());
 
   @override
   Future<void> speak(String text, {double rate = 1.0}) => _current.speak(text, rate: rate);
 
+  /// ながらセッションが読み終わりを待つ入口。実体が待てない型なら、目安の時間だけ待つ。
+  @override
+  Future<void> speakAndWait(String text, {double rate = 1.0}) {
+    final current = _current;
+    if (current is AwaitableSpeechBackend) return current.speakAndWait(text, rate: rate);
+    return current
+        .speak(text, rate: rate)
+        .then((_) => Future<void>.delayed(NagaraSessionController.estimateSpeechDuration(text, rate)));
+  }
+
   @override
   Future<void> stop() => _current.stop();
 }
+
+/// ながらセッション（kit の `NagaraSessionView`）に渡す、アプリ共通の読み上げの実体。
+final SpeechBackend appSpeechBackend = _CurrentBackend();
 
 /// 設定（[appHandsFree]）に従って、問題・解説を読み上げる。
 final HandsFreeSpeaker appSpeaker = HandsFreeSpeaker(
