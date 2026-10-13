@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'company_mode/company_mode_history_store.dart';
 import 'exam_data/exam_data_cache.dart';
+import 'exam_prep/exam_prep_entry.dart';
 import 'hands_free/hands_free_state.dart';
 import 'company_mode/company_scenario_list_page.dart';
 import 'mock_exam/mock_exam_page.dart';
@@ -129,6 +130,8 @@ class UkalabBoki3App extends ConsumerWidget {
               dataSection: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  ExamPrepSettingsSection(progressStore: appProgressStore),
+                  const SizedBox(height: 32),
                   const DailyGoalSetting(),
                   const SizedBox(height: 32),
                   const ReminderSettingsSection(showMockReminder: false),
@@ -179,6 +182,7 @@ class _HomePage extends StatelessWidget {
         Boki3OshiCard(store: appProgressStore),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: DailyMissionCard()),
         const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: StudyReminderCard()),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: ExamPrepEntryCard(progressStore: appProgressStore)),
         ProgressSummaryCard(store: appProgressStore),
       ],
     );

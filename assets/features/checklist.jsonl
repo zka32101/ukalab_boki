@@ -1,0 +1,9 @@
+{"itemId": "b-format", "examId": "boki3", "category": "admission", "label": "受験形式（会場での試験かネット試験か）と、日時・会場を確認した", "note": "受験案内で確認する"}
+{"itemId": "b-ticket", "examId": "boki3", "category": "admission", "label": "受験に必要な書類・受験票（または案内メール）を用意した", "note": "公式の受験案内で確認する"}
+{"itemId": "b-id", "examId": "boki3", "category": "admission", "label": "本人確認の方法と必要な書類を確かめた", "note": "公式の受験案内で確認する"}
+{"itemId": "b-calc-allowed", "examId": "boki3", "category": "belongings", "label": "電卓を持ち込めるかどうかを確かめた", "note": "持ち込みの可否は公式で要確認。会場に用意される場合もある"}
+{"itemId": "b-calc-spec", "examId": "boki3", "category": "belongings", "label": "電卓を使える場合、使える機能・種類の条件を確かめた", "note": "機種・機能の制限は公式で確認する"}
+{"itemId": "b-pencil", "examId": "boki3", "category": "belongings", "label": "筆記用具・消しゴム・計算用紙の扱いを確かめた", "note": "指定や貸与の有無は公式で確認する"}
+{"itemId": "b-banned", "examId": "boki3", "category": "belongings", "label": "持ち込めない物（スマートフォン・時計・参考書など）を確かめた", "note": "公式の受験案内で確認する"}
+{"itemId": "b-route", "examId": "boki3", "category": "travel", "label": "会場までの行き方と所要時間を確かめた"}
+{"itemId": "b-margin", "examId": "boki3", "category": "travel", "label": "集合時刻に余裕をもって着く予定を立てた", "note": "集合時刻は公式で確認する"}
