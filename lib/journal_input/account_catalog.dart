@@ -49,7 +49,7 @@ const List<AccountDef> boki3Accounts = [
   AccountDef(code: 'electronic_receivable', name: '電子記録債権', group: AccountGroup.asset),
   AccountDef(code: 'loan_receivable', name: '貸付金', group: AccountGroup.asset),
   AccountDef(code: 'advance_paid', name: '立替金', group: AccountGroup.asset),
-  AccountDef(code: 'accrued_revenue', name: '未収入金', group: AccountGroup.asset),
+  AccountDef(code: 'accrued_revenue', name: '未収入金', group: AccountGroup.asset), // 注意: 商品以外の売却代金などの未収入金。経過勘定の「未収収益」ではない
   AccountDef(code: 'advance_payment', name: '前払金', group: AccountGroup.asset),
   AccountDef(code: 'temporary_payment', name: '仮払金', group: AccountGroup.asset),
   AccountDef(
@@ -83,7 +83,7 @@ const List<AccountDef> boki3Accounts = [
   AccountDef(code: 'accounts_payable', name: '買掛金', group: AccountGroup.liability),
   AccountDef(code: 'electronic_payable', name: '電子記録債務', group: AccountGroup.liability),
   AccountDef(code: 'borrowings', name: '借入金', group: AccountGroup.liability),
-  AccountDef(code: 'accrued_payable', name: '未払金', group: AccountGroup.liability),
+  AccountDef(code: 'accrued_payable', name: '未払金', group: AccountGroup.liability), // 注意: 商品以外の購入代金などの未払金。経過勘定の「未払費用」(unpaid_expense)ではない
   AccountDef(code: 'advance_received', name: '前受金', group: AccountGroup.liability),
   AccountDef(code: 'deposit_received', name: '預り金', group: AccountGroup.liability),
   AccountDef(code: 'temporary_receipt', name: '仮受金', group: AccountGroup.liability),
