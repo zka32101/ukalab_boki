@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/achievements.dart'
     show
@@ -6,6 +8,7 @@ import 'package:ukalab_core/achievements.dart'
         dailyGoalAchievementCategoryLabels,
         dailyGoalAchievementsOverride,
         watchAchievementUnlocks;
+import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromo;
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/glossary.dart' show LearnedTermsStore;
 import 'package:ukalab_core/reminder.dart';
@@ -41,6 +44,9 @@ void main() async {
   await migrateLegacyProgressKeys();
   await loadSavedThemeMode();
   await loadHandsFree();
+
+  // 相互紹介（Firebase 初期化＋掲載リスト取得）。失敗しても起動を止めず、起動もブロックしない。
+  unawaited(UkalabCrossPromo.init());
 
   // 課金（RevenueCat）。実際のAPIキー取得後にRevenueCatEntitlementServiceへ差し替える。
   // 価格は競合調査を踏まえた暫定値で、運営者確認が必要（決定14）。
