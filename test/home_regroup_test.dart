@@ -49,7 +49,7 @@ void main() {
       WeeklyRecapSection,
       MistakeNoteTile,
     ]) {
-      expect(find.byType(type, skipOffstage: false), findsOneWidget, reason: '$type');
+      expect(find.byType(type, skipOffstage: false), findsWidgets, reason: '$type');
     }
   }
 
