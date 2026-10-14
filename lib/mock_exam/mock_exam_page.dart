@@ -265,7 +265,13 @@ class _MockExamIntroView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final minutes = level.timeLimitSec == null ? null : level.timeLimitSec! ~/ 60;
-    return Center(
+    // 狭い画面・大きい文字では縦に収まらないので、スクロールできるようにする（収まるときは従来どおり縦中央）。
+    // 開始ボタンが画面外で押せなくならないようにする。
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -306,7 +312,7 @@ class _MockExamIntroView extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ))));
   }
 }
 

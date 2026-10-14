@@ -150,4 +150,28 @@ void main() {
     await settle(tester);
     expect(tester.takeException(), isNull);
   });
+
+  for (final size in const [Size(280, 560), Size(180, 370)]) {
+    testWidgets('模擬の開始前画面は狭い画面でも溢れず、開始ボタンまでスクロールできる（${size.width.toInt()}x${size.height.toInt()}）', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(ProviderScope(
+        overrides: studyNotesTestOverrides(),
+        child: MaterialApp(home: MockExamPage(progressStore: InMemoryProgressStore())),
+      ));
+      for (var i = 0; i < 30 && find.text('模擬試験を開始する').evaluate().isEmpty; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(find.text('模擬試験を開始する'), 200);
+      await tester.tap(find.text('模擬試験を開始する'));
+      await tester.pump();
+      expect(find.byType(ChoiceQuestionView).evaluate().isNotEmpty || find.text('次へ').evaluate().isNotEmpty, isTrue);
+    });
+  }
 }
