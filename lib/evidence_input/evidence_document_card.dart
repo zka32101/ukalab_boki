@@ -32,9 +32,11 @@ class EvidenceDocumentCard extends StatelessWidget {
             children: [
               Icon(document.icon, size: 20, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
-              Text(
-                document.title,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  document.title,
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
