@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/achievements.dart'
@@ -13,6 +14,7 @@ import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/glossary.dart' show LearnedTermsStore;
 import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,6 +48,11 @@ final ProgressStore appProgressStore = SharedPreferencesProgressStore();
 /// 会社経営モードのプレイ結果の保存先。端末内保存（アプリ全体で共有）。
 final CompanyModeHistoryStore appCompanyModeHistoryStore = SharedPreferencesCompanyModeHistoryStore();
 
+/// RevenueCat の公開SDKキー(Google Play用)。コミットせず、ビルド時に
+/// `--dart-define=RC_GOOGLE_KEY=<値>` で渡す。未指定・Web・Android以外は偽の課金サービスで動く。
+const _rcGoogleKey = String.fromEnvironment('RC_GOOGLE_KEY');
+bool get _useRevenueCat => !kIsWeb && Platform.isAndroid && _rcGoogleKey.isNotEmpty;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await migrateLegacyProgressKeys();
@@ -55,9 +62,11 @@ void main() async {
   // 相互紹介（Firebase 初期化＋掲載リスト取得）。失敗しても起動を止めず、起動もブロックしない。
   unawaited(UkalabCrossPromo.init());
 
-  // 課金（RevenueCat）。実際のAPIキー取得後にRevenueCatEntitlementServiceへ差し替える。
-  // 価格は競合調査を踏まえた暫定値で、運営者確認が必要（決定14）。
-  final entitlementService = FakeEntitlementService(
+  // 課金（RevenueCat）。Android かつ RC_GOOGLE_KEY 指定時は本物、それ以外は偽（Web・テスト用）。
+  // Fake側の価格は競合調査を踏まえた暫定値で、運営者確認が必要（決定14）。
+  final EntitlementService entitlementService = _useRevenueCat
+      ? await RevenueCatEntitlementService.init(publicSdkKey: _rcGoogleKey)
+      : FakeEntitlementService(
     availableOffers: const [
       EntitlementOffer(
         id: 'noads',
