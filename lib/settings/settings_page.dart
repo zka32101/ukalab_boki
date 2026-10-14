@@ -115,8 +115,9 @@ class ThemeModeSetting extends StatelessWidget {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: appThemeMode,
       builder: (context, mode, _) {
-          // 幅が極端に狭い端末（約200dp未満）では、アイコンを省いて文字だけにして溢れを防ぐ。
-          final narrow = MediaQuery.sizeOf(context).width < 220;
+          // 幅が狭い端末や文字が大きいとき（文字サイズ換算で約330dp未満）は、アイコンを省いて文字だけにして折れ・溢れを防ぐ。
+          final scale = MediaQuery.textScalerOf(context).scale(1);
+          final narrow = MediaQuery.sizeOf(context).width / scale < 330;
           return SegmentedButton<ThemeMode>(
             showSelectedIcon: !narrow,
             segments: [
