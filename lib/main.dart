@@ -57,6 +57,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await migrateLegacyProgressKeys();
   await loadSavedThemeMode();
+  // 文字の大きさ（アプリ内設定）を復元する
+  await loadSavedTextScale();
   await loadHandsFree();
 
   // 相互紹介（Firebase 初期化＋掲載リスト取得）。失敗しても起動を止めず、起動もブロックしない。
@@ -124,6 +126,8 @@ class UkalabBoki3App extends ConsumerWidget {
       builder: (context, mode, _) => MaterialApp(
         title: 'うかラボ 簿記3級',
         scaffoldMessengerKey: scaffoldMessengerKey,
+        // 文字の大きさ（設定画面で選ぶ）を端末の文字サイズに掛け合わせる。
+        builder: applyAppTextScale,
         navigatorObservers: [homeRouteObserver],
         theme: UkalabTheme.light(field: _field, cert: _cert),
         darkTheme: UkalabTheme.dark(field: _field, cert: _cert),
