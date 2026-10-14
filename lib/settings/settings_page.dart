@@ -87,6 +87,8 @@ class SettingsPage extends StatelessWidget {
             onSelectionChanged: (selected) => setThemeMode(selected.first),
           ),
         ),
+        const SizedBox(height: 16),
+        const TextScaleSetting(strings: TextScaleStrings.ja),
         const SizedBox(height: 32),
         const HandsFreeSection(),
         if (purchaseSection != null) ...[
