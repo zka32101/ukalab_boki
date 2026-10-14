@@ -53,7 +53,12 @@ class _Boki3OshiCardState extends State<Boki3OshiCard> {
     super.dispose();
   }
 
-  void _onChanged() => setState(() => _future = _load());
+  void _onChanged() {
+    // setState のコールバックは Future を返してはいけない（debug で警告になる）ので、ブロックにして代入だけ行う。
+    setState(() {
+      _future = _load();
+    });
+  }
 
   Future<_OshiData> _load() async {
     final questions = await loadQuestions();

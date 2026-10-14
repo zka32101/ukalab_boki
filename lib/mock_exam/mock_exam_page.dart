@@ -14,7 +14,6 @@ import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../practice/choice_question_view.dart';
 import '../practice/practice_page.dart';
-import '../oshi/oshi_recap.dart' show topicLabelFor;
 import '../progress/progress_revision.dart';
 import '../voucher_input/voucher_kind.dart';
 import '../voucher_input/voucher_question_view.dart';
@@ -266,7 +265,13 @@ class _MockExamIntroView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final minutes = level.timeLimitSec == null ? null : level.timeLimitSec! ~/ 60;
-    return Center(
+    // 狭い画面・大きい文字では縦に収まらないので、スクロールできるようにする（収まるときは従来どおり縦中央）。
+    // 開始ボタンが画面外で押せなくならないようにする。
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -307,7 +312,7 @@ class _MockExamIntroView extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ))));
   }
 }
 
@@ -534,16 +539,18 @@ class _MockExamResultView extends StatelessWidget {
           ),
         const SizedBox(height: 16),
         // 結果分析（分野別の様子と「次にやる分野」）。今回の解答だけから作り、何も保存しない。
+        // 分野は「第1問〜第3問」の科目単位で集計する。このアプリの topicId は問題ごとにほぼ1つ
+        // （1問1論点）なので、topicId で数えると「第3問 決算 / 1問中0問正解」のような行が大量に並ぶ。
         MockExamAnalysisCard(
           analysis: const MockExamAnalysisEngine().analyze([
-            for (final q in questions) MockExamAnswer(topicId: q.topicId, correct: !wrongQids.contains(q.qid)),
+            for (final q in questions) MockExamAnswer(topicId: q.subjectId, correct: !wrongQids.contains(q.qid)),
           ]),
-          topicLabel: topicLabelFor(questions, (id) {
+          topicLabel: (id) {
             for (final s in exam.subjects) {
               if (s.subjectId == id) return s.name;
             }
-            return null;
-          }),
+            return id;
+          },
         ),
         const SizedBox(height: 12),
         OutlinedButton(

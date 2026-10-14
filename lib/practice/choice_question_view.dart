@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../term/explanation_with_terms.dart';
 import 'question_body_layout.dart';
+import 'tap_guard.dart';
 
 /// 選択式（type: choice）問題1問分の画面。問題文・選択肢・答え合わせをまとめる。
 /// [JournalQuestionView]（lib/journal_input/）と並ぶ、第2問の理論問題向けの
@@ -43,11 +44,12 @@ class ChoiceQuestionView extends StatefulWidget {
   State<ChoiceQuestionView> createState() => _ChoiceQuestionViewState();
 }
 
-class _ChoiceQuestionViewState extends State<ChoiceQuestionView> {
+class _ChoiceQuestionViewState extends State<ChoiceQuestionView> with TapGuardMixin<ChoiceQuestionView> {
   int? _selected;
   bool _answered = false;
 
   void _checkAnswer() {
+    startTapGuard(); // 直後の「次の問題へ」への誤タップ（ダブルタップ）を無視する
     final selected = _selected;
     if (selected == null) return;
     final correct = selected == widget.answerIndex;
@@ -116,11 +118,11 @@ class _ChoiceQuestionViewState extends State<ChoiceQuestionView> {
           padding: const EdgeInsets.all(16),
           child: !_answered
               ? FilledButton(
-                  onPressed: _selected == null ? null : _checkAnswer,
+                  onPressed: guardTap(_selected == null ? null : _checkAnswer),
                   child: Text(widget.revealResult ? '答え合わせ' : '次へ'),
                 )
               : (widget.onNext != null
-                  ? FilledButton(onPressed: widget.onNext, child: const Text('次の問題へ'))
+                  ? FilledButton(onPressed: guardTap(widget.onNext), child: const Text('次の問題へ'))
                   : OutlinedButton(onPressed: _retry, child: const Text('もう一度'))),
         ),
       ],

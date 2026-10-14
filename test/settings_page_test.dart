@@ -40,4 +40,16 @@ void main() {
     expect(progressRevision.value, greaterThan(revisionBefore));
     expect(find.text('解答記録をリセットしました'), findsOneWidget);
   });
+
+  testWidgets('幅180でも、表示の切り替え（ライト/ダーク/端末設定）が溢れない', (tester) async {
+    tester.view.physicalSize = const Size(180, 370);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: Padding(padding: EdgeInsets.all(16), child: ThemeModeSetting()))),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('端末設定'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -65,30 +65,7 @@ class SettingsPage extends StatelessWidget {
       children: [
         Text('表示', style: theme.textTheme.titleLarge),
         const SizedBox(height: 12),
-        ValueListenableBuilder<ThemeMode>(
-          valueListenable: appThemeMode,
-          builder: (context, mode, _) => SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(
-                value: ThemeMode.light,
-                label: Text('ライト'),
-                icon: Icon(Icons.light_mode_outlined),
-              ),
-              ButtonSegment(
-                value: ThemeMode.dark,
-                label: Text('ダーク'),
-                icon: Icon(Icons.dark_mode_outlined),
-              ),
-              ButtonSegment(
-                value: ThemeMode.system,
-                label: Text('端末設定'),
-                icon: Icon(Icons.smartphone_outlined),
-              ),
-            ],
-            selected: {mode},
-            onSelectionChanged: (selected) => setThemeMode(selected.first),
-          ),
-        ),
+        const ThemeModeSetting(),
         const SizedBox(height: 16),
         const TextScaleSetting(strings: TextScaleStrings.ja),
         const SizedBox(height: 32),
@@ -125,6 +102,44 @@ class SettingsPage extends StatelessWidget {
         ),
         ],
       ],
+    );
+  }
+}
+
+/// 表示（ライト／ダーク／端末設定）の切り替え。
+class ThemeModeSetting extends StatelessWidget {
+  const ThemeModeSetting({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: appThemeMode,
+      builder: (context, mode, _) {
+          // 幅が極端に狭い端末（約200dp未満）では、アイコンを省いて文字だけにして溢れを防ぐ。
+          final narrow = MediaQuery.sizeOf(context).width < 220;
+          return SegmentedButton<ThemeMode>(
+            showSelectedIcon: !narrow,
+            segments: [
+              ButtonSegment(
+                value: ThemeMode.light,
+                label: const Text('ライト'),
+                icon: narrow ? null : const Icon(Icons.light_mode_outlined),
+              ),
+              ButtonSegment(
+                value: ThemeMode.dark,
+                label: const Text('ダーク'),
+                icon: narrow ? null : const Icon(Icons.dark_mode_outlined),
+              ),
+              ButtonSegment(
+                value: ThemeMode.system,
+                label: const Text('端末設定'),
+                icon: narrow ? null : const Icon(Icons.smartphone_outlined),
+              ),
+            ],
+            selected: {mode},
+            onSelectionChanged: (selected) => setThemeMode(selected.first),
+          );
+        },
     );
   }
 }

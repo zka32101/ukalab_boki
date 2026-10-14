@@ -26,6 +26,7 @@ import 'company_mode/company_scenario_list_page.dart';
 import 'mistake_note/mistake_note_page.dart';
 import 'nagara/nagara_session_page.dart';
 import 'mock_exam/mock_exam_page.dart';
+import 'oshi/boki3_coin_overrides.dart';
 import 'oshi/boki3_oshi_card.dart';
 import 'oshi/oshi_growth_section.dart';
 import 'oshi/oshi_home_cards.dart';
@@ -93,6 +94,7 @@ void main() async {
   final dailyGoal = await dailyGoalOverrides('boki3');
   final reminder = await reminderOverrides('boki3');
   final achievementUnlock = await achievementUnlockOverrides('boki3');
+  final coinOutfit = await coinOutfitOverrides('boki3');
 
   runApp(
     ProviderScope(
@@ -102,6 +104,7 @@ void main() async {
         ...dailyGoal,
         ...reminder,
         ...achievementUnlock,
+        ...coinOutfit,
         dailyGoalAchievementsOverride,
       ],
       child: const UkalabBoki3App(),
@@ -167,14 +170,18 @@ class UkalabBoki3App extends ConsumerWidget {
                         'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
                   ),
                   const SizedBox(height: 16),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.emoji_events_outlined),
-                    title: const Text('実績'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const AchievementsView(categoryLabels: dailyGoalAchievementCategoryLabels),
+                  // build の context は MaterialApp より上で Navigator を含まないため、Builder で
+                  // 画面の中の context を使って遷移する。
+                  Builder(
+                    builder: (c) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.emoji_events_outlined),
+                      title: const Text('実績'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(c).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const AchievementsView(categoryLabels: dailyGoalAchievementCategoryLabels),
+                        ),
                       ),
                     ),
                   ),

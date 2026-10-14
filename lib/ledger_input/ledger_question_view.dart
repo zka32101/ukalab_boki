@@ -8,6 +8,7 @@ import 'ledger_diff_mapper.dart';
 import 'ledger_input_controller.dart';
 import 'ledger_result_banner.dart';
 import 'ledger_table.dart';
+import '../practice/tap_guard.dart';
 
 /// 補助簿（商品有高帳・現金出納帳など）問題1問分の画面。問題文・入力テーブル・
 /// テンキー・答え合わせをまとめる。[WorksheetQuestionView]（`lib/worksheet_input/`）
@@ -42,7 +43,7 @@ class LedgerQuestionView extends ConsumerStatefulWidget {
   ConsumerState<LedgerQuestionView> createState() => _LedgerQuestionViewState();
 }
 
-class _LedgerQuestionViewState extends ConsumerState<LedgerQuestionView> {
+class _LedgerQuestionViewState extends ConsumerState<LedgerQuestionView> with TapGuardMixin<LedgerQuestionView> {
   LedgerJudgeResult? _result;
 
   @override
@@ -59,6 +60,7 @@ class _LedgerQuestionViewState extends ConsumerState<LedgerQuestionView> {
   }
 
   void _checkAnswer() {
+    startTapGuard(); // 直後の「次の問題へ」への誤タップ（ダブルタップ）を無視する
     final cells = ref.read(ledgerInputProvider).toLedgerCells();
     final result = judgeLedger(widget.correctAnswer, cells);
     widget.onAnswered?.call(result, cells);
@@ -125,11 +127,11 @@ class _LedgerQuestionViewState extends ConsumerState<LedgerQuestionView> {
           padding: const EdgeInsets.all(16),
           child: _result == null
               ? FilledButton(
-                  onPressed: _checkAnswer,
+                  onPressed: guardTap(_checkAnswer),
                   child: Text(widget.revealResult ? '答え合わせ' : '次へ'),
                 )
               : (widget.onNext != null
-                  ? FilledButton(onPressed: widget.onNext, child: const Text('次の問題へ'))
+                  ? FilledButton(onPressed: guardTap(widget.onNext), child: const Text('次の問題へ'))
                   : OutlinedButton(onPressed: _retry, child: const Text('もう一度'))),
         ),
       ],
