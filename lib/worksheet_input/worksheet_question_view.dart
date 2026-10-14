@@ -8,6 +8,7 @@ import 'worksheet_diff_mapper.dart';
 import 'worksheet_input_controller.dart';
 import 'worksheet_result_banner.dart';
 import 'worksheet_table.dart';
+import '../practice/tap_guard.dart';
 
 /// 表埋め（精算表・財務諸表）問題1問分の画面。問題文・入力テーブル・
 /// テンキー・答え合わせをまとめる。[JournalQuestionView] の表埋め版。
@@ -41,7 +42,7 @@ class WorksheetQuestionView extends ConsumerStatefulWidget {
   ConsumerState<WorksheetQuestionView> createState() => _WorksheetQuestionViewState();
 }
 
-class _WorksheetQuestionViewState extends ConsumerState<WorksheetQuestionView> {
+class _WorksheetQuestionViewState extends ConsumerState<WorksheetQuestionView> with TapGuardMixin<WorksheetQuestionView> {
   WorksheetJudgeResult? _result;
 
   @override
@@ -58,6 +59,7 @@ class _WorksheetQuestionViewState extends ConsumerState<WorksheetQuestionView> {
   }
 
   void _checkAnswer() {
+    startTapGuard(); // 直後の「次の問題へ」への誤タップ（ダブルタップ）を無視する
     final cells = ref.read(worksheetInputProvider).toWorksheetCells();
     final result = judgeWorksheet(widget.correctAnswer, cells);
     widget.onAnswered?.call(result, cells);
@@ -119,11 +121,11 @@ class _WorksheetQuestionViewState extends ConsumerState<WorksheetQuestionView> {
           padding: const EdgeInsets.all(16),
           child: _result == null
               ? FilledButton(
-                  onPressed: _checkAnswer,
+                  onPressed: guardTap(_checkAnswer),
                   child: Text(widget.revealResult ? '答え合わせ' : '次へ'),
                 )
               : (widget.onNext != null
-                  ? FilledButton(onPressed: widget.onNext, child: const Text('次の問題へ'))
+                  ? FilledButton(onPressed: guardTap(widget.onNext), child: const Text('次の問題へ'))
                   : OutlinedButton(onPressed: _retry, child: const Text('もう一度'))),
         ),
       ],

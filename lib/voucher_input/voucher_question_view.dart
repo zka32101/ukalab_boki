@@ -12,6 +12,7 @@ import 'voucher_input_controller.dart';
 import 'voucher_input_state.dart';
 import 'voucher_kind.dart';
 import 'voucher_slip_frame.dart';
+import '../practice/tap_guard.dart';
 
 /// 伝票（入金・出金・振替）1問分の画面。
 ///
@@ -94,7 +95,7 @@ class _SingleLineVoucherForm extends ConsumerStatefulWidget {
   ConsumerState<_SingleLineVoucherForm> createState() => _SingleLineVoucherFormState();
 }
 
-class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> {
+class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> with TapGuardMixin<_SingleLineVoucherForm> {
   static const _maxRecent = 5;
   final List<String> _recentAccounts = [];
   JournalJudgeResult? _result;
@@ -111,6 +112,7 @@ class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> 
   void didUpdateWidget(covariant _SingleLineVoucherForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.prompt != widget.prompt) {
+      startTapGuard();
       setState(() {
         _result = null;
         _recentAccounts.clear();
@@ -149,6 +151,7 @@ class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> 
   }
 
   void _checkAnswer() {
+    startTapGuard(); // 直後の「次の問題へ」への誤タップ（ダブルタップ）を無視する
     final input = ref.read(voucherInputProvider);
     final lines = _buildLines(input);
     final result = judgeJournal(widget.correctAnswer, lines);
@@ -225,11 +228,11 @@ class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> 
           padding: const EdgeInsets.all(16),
           child: _result == null
               ? FilledButton(
-                  onPressed: _checkAnswer,
+                  onPressed: guardTap(_checkAnswer),
                   child: Text(widget.revealResult ? '答え合わせ' : '次へ'),
                 )
               : (widget.onNext != null
-                  ? FilledButton(onPressed: widget.onNext, child: const Text('次の問題へ'))
+                  ? FilledButton(onPressed: guardTap(widget.onNext), child: const Text('次の問題へ'))
                   : OutlinedButton(onPressed: _retry, child: const Text('もう一度'))),
         ),
       ],

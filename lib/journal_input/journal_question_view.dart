@@ -11,6 +11,7 @@ import 'journal_input_table.dart';
 import 'journal_result_banner.dart';
 import '../practice/question_body_layout.dart';
 import 'numeric_keypad.dart';
+import '../practice/tap_guard.dart';
 
 /// 仕訳問題1問分の画面。問題文・貸借バランス表示・入力テーブル・テンキー・
 /// 答え合わせをまとめる。
@@ -53,7 +54,7 @@ class JournalQuestionView extends ConsumerStatefulWidget {
   ConsumerState<JournalQuestionView> createState() => _JournalQuestionViewState();
 }
 
-class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
+class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> with TapGuardMixin<JournalQuestionView> {
   static const _maxRecent = 5;
 
   final List<String> _recentAccounts = [];
@@ -81,6 +82,7 @@ class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
   }
 
   void _checkAnswer() {
+    startTapGuard(); // 直後の「次の問題へ」への誤タップ（ダブルタップ）を無視する
     final lines = ref.read(journalInputProvider).toJournalLines();
     final result = judgeJournal(widget.correctAnswer, lines);
     widget.onAnswered?.call(result, lines);
@@ -102,6 +104,7 @@ class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
     // 複数問を連続して出す画面（PracticeSession連動）で問題が切り替わったら、
     // 前の問題の入力・判定結果・最近使った科目をリセットする。
     if (oldWidget.prompt != widget.prompt) {
+      startTapGuard();
       setState(() {
         _result = null;
         _recentAccounts.clear();
@@ -161,11 +164,11 @@ class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
           padding: const EdgeInsets.all(16),
           child: _result == null
               ? FilledButton(
-                  onPressed: _checkAnswer,
+                  onPressed: guardTap(_checkAnswer),
                   child: Text(widget.revealResult ? '答え合わせ' : '次へ'),
                 )
               : (widget.onNext != null
-                  ? FilledButton(onPressed: widget.onNext, child: const Text('次の問題へ'))
+                  ? FilledButton(onPressed: guardTap(widget.onNext), child: const Text('次の問題へ'))
                   : OutlinedButton(onPressed: _retry, child: const Text('もう一度'))),
         ),
       ],
