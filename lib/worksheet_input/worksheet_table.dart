@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../journal_input/account_catalog.dart';
+import '../practice/table_text_factor.dart';
 import 'worksheet_input_controller.dart';
 import 'worksheet_input_state.dart';
 
@@ -81,14 +84,19 @@ class _WorksheetTableState extends ConsumerState<WorksheetTable> {
     final controller = ref.read(worksheetInputProvider.notifier);
     _scrollToIfSelected(state.selectedCell);
 
+    // 文字が大きいときは列幅も広げる（固定幅のままだと数字が「…」で切れ、科目名が1文字ずつ折り返す）。
+    // 表は横スクロールなので、広げても画面からはみ出さない。
+    final f = tableTextFactor(context);
+    // 金額（最大6桁）が「…」で切れない幅を、実際の文字の幅から求める（通常の大きさでは従来の幅のまま）。
+    final dataWidth = math.max(WorksheetTable._dataColumnWidth, amountCellWidth(context, digits: 6));
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Table(
         border: TableBorder.all(color: Theme.of(context).colorScheme.outlineVariant),
         columnWidths: {
-          0: const FixedColumnWidth(WorksheetTable._accountColumnWidth),
+          0: FixedColumnWidth(WorksheetTable._accountColumnWidth * f),
           for (var i = 0; i < columns.length; i++)
-            i + 1: const FixedColumnWidth(WorksheetTable._dataColumnWidth),
+            i + 1: FixedColumnWidth(dataWidth),
         },
         children: [
           TableRow(
@@ -226,7 +234,8 @@ class _ValueCell extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 48,
+        // 文字が大きいときは高さを伸ばす（固定高さだと数字が枠からはみ出す）。
+        constraints: const BoxConstraints(minHeight: 48),
         alignment: Alignment.center,
         color: background,
         padding: const EdgeInsets.symmetric(horizontal: 4),

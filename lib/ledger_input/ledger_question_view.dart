@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../journal_input/numeric_keypad.dart';
+import '../practice/question_body_layout.dart';
 import 'ledger_diff_mapper.dart';
 import 'ledger_input_controller.dart';
 import 'ledger_result_banner.dart';
@@ -82,23 +83,20 @@ class _LedgerQuestionViewState extends ConsumerState<LedgerQuestionView> {
     final cellDiffs = _result == null ? null : buildLedgerCellDiffs(_result!.diffs);
     final showKeypad = _result == null && state.selectedCell != null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return QuestionBodyLayout(
+      scrollChildren: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(widget.prompt, style: Theme.of(context).textTheme.titleMedium),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: LedgerTable(
-              rows: widget.correctAnswer.rows,
-              givenCells: widget.correctAnswer.givenCells,
-              blankCells: widget.correctAnswer.blankCells,
-              cellDiffs: cellDiffs,
-              readOnly: _result != null,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: LedgerTable(
+            rows: widget.correctAnswer.rows,
+            givenCells: widget.correctAnswer.givenCells,
+            blankCells: widget.correctAnswer.blankCells,
+            cellDiffs: cellDiffs,
+            readOnly: _result != null,
           ),
         ),
         if (_result != null)
@@ -110,6 +108,8 @@ class _LedgerQuestionViewState extends ConsumerState<LedgerQuestionView> {
               explanation: widget.explanation,
             ),
           ),
+      ],
+      bottomChildren: [
         if (showKeypad)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

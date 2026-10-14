@@ -2,6 +2,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 
 import '../practice/choice_question_view.dart';
+import '../practice/question_body_layout.dart';
 import '../term/explanation_with_terms.dart';
 import 'hands_free_state.dart';
 
@@ -87,19 +88,48 @@ class _HandsFreeChoiceQuestionState extends State<HandsFreeChoiceQuestion> {
   }
 
   Widget _buildQuestion(BuildContext context) {
-    return HandsFreeQuestionLayout(
-      question: Text(widget.prompt, style: Theme.of(context).textTheme.titleLarge),
-      trailing: ReadAloudButton(
-        onPressed: () => appSpeaker.speakNow(questionReadAloudText(widget.prompt, widget.choices)),
-      ),
-      choices: [
-        for (var i = 0; i < widget.choices.length; i++)
-          HandsFreeChoiceTile(
-            label: _labelFor(i),
-            text: widget.choices[i],
-            state: ChoiceState.idle,
-            onTap: () => _select(i),
+    // app_common_kit の HandsFreeQuestionLayout と同じ構成（問題文は上、選択肢は下に寄せる）。ただし kit 版は
+    // 選択肢の領域がスクロールせず、文字が大きいと画面を超えて選択肢が切れるため、下の領域も
+    // 画面の一定割合を超えたらスクロールする [QuestionBodyLayout] で組む。
+    final prompt = Text(widget.prompt, style: Theme.of(context).textTheme.titleLarge);
+    final readAloud = ReadAloudButton(
+      onPressed: () => appSpeaker.speakNow(questionReadAloudText(widget.prompt, widget.choices)),
+    );
+    return QuestionBodyLayout(
+      scrollChildren: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              prompt,
+              const SizedBox(height: 12),
+              Align(alignment: Alignment.centerRight, child: readAloud),
+            ],
           ),
+        ),
+      ],
+      bottomChildren: [
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < widget.choices.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 12),
+                  HandsFreeChoiceTile(
+                    label: _labelFor(i),
+                    text: widget.choices[i],
+                    state: ChoiceState.idle,
+                    onTap: () => _select(i),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -115,9 +145,11 @@ class _HandsFreeChoiceQuestionState extends State<HandsFreeChoiceQuestion> {
           children: [
             Icon(correct ? Icons.check_circle : Icons.cancel, color: color, size: 32),
             const SizedBox(width: 8),
-            Text(
-              correct ? '正解です' : '不正解です',
-              style: theme.textTheme.titleLarge?.copyWith(color: color),
+            Expanded(
+              child: Text(
+                correct ? '正解です' : '不正解です',
+                style: theme.textTheme.titleLarge?.copyWith(color: color),
+              ),
             ),
           ],
         ),

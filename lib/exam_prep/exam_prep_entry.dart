@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../practice/practice_page.dart';
 import '../progress/progress_revision.dart';
 import 'exam_prep_data.dart';
@@ -139,7 +140,7 @@ class ExamDateSettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('試験日')),
+      appBar: wrappingAppBar(context, '試験日'),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ExamDateTile(

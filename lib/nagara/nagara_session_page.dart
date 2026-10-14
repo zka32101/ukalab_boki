@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../exam_data/current_level.dart';
 import '../exam_data/exam_data_cache.dart';
 import '../hands_free/hands_free_state.dart';
@@ -118,7 +119,7 @@ class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ながら学習')),
+      appBar: wrappingAppBar(context, 'ながら学習'),
       body: SafeArea(
         child: FutureBuilder<List<Question>>(
           future: _future,

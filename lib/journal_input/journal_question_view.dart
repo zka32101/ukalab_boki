@@ -9,6 +9,7 @@ import 'journal_input_controller.dart';
 import 'journal_input_state.dart';
 import 'journal_input_table.dart';
 import 'journal_result_banner.dart';
+import '../practice/question_body_layout.dart';
 import 'numeric_keypad.dart';
 
 /// 仕訳問題1問分の画面。問題文・貸借バランス表示・入力テーブル・テンキー・
@@ -23,7 +24,11 @@ class JournalQuestionView extends ConsumerStatefulWidget {
     this.onNext,
     this.revealResult = true,
     this.accountPool = boki3Accounts,
+    this.header,
   });
+
+  /// 問題文の上に足す部品（証ひょうカードなど）。問題文と同じスクロールの中に置く。
+  final Widget? header;
 
   final String prompt;
   final JournalAnswer correctAnswer;
@@ -112,9 +117,9 @@ class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
     final cellDiffs = _result == null ? null : buildCellDiffs(state.rows, _result!.diffs);
     final showKeypad = _result == null && state.selectedCell?.field == JournalCellField.amount;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return QuestionBodyLayout(
+      scrollChildren: [
+        if (widget.header != null) widget.header!,
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(widget.prompt, style: Theme.of(context).textTheme.titleMedium),
@@ -124,16 +129,14 @@ class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
           child: BalanceIndicator(debitTotal: state.debitTotal, creditTotal: state.creditTotal),
         ),
         const SizedBox(height: 8),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: JournalInputTable(
-              recentAccountCodes: _recentAccounts,
-              cellDiffs: cellDiffs,
-              readOnly: _result != null,
-              onAccountSelected: _onAccountSelected,
-              accountPool: widget.accountPool,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: JournalInputTable(
+            recentAccountCodes: _recentAccounts,
+            cellDiffs: cellDiffs,
+            readOnly: _result != null,
+            onAccountSelected: _onAccountSelected,
+            accountPool: widget.accountPool,
           ),
         ),
         if (_result != null)
@@ -141,6 +144,8 @@ class _JournalQuestionViewState extends ConsumerState<JournalQuestionView> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: JournalResultBanner(result: _result!, explanation: widget.explanation),
           ),
+      ],
+      bottomChildren: [
         if (showKeypad)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

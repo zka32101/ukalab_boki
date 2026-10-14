@@ -43,34 +43,27 @@ class EvidenceQuestionView extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (document.narrative.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(document.narrative, style: Theme.of(context).textTheme.titleMedium),
-                ),
-              EvidenceDocumentCard(document: document),
-            ],
-          ),
+    return JournalQuestionView(
+      header: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (document.narrative.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(document.narrative, style: Theme.of(context).textTheme.titleMedium),
+              ),
+            EvidenceDocumentCard(document: document),
+          ],
         ),
-        Expanded(
-          child: JournalQuestionView(
-            prompt: document.instruction,
-            correctAnswer: correctAnswer,
-            explanation: explanation,
-            onAnswered: onAnswered,
-            onNext: onNext,
-            revealResult: revealResult,
-          ),
-        ),
-      ],
+      ),
+      prompt: document.instruction,
+      correctAnswer: correctAnswer,
+      explanation: explanation,
+      onAnswered: onAnswered,
+      onNext: onNext,
+      revealResult: revealResult,
     );
   }
 }

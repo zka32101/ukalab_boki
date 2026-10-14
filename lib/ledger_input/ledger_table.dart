@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../practice/table_text_factor.dart';
 import 'ledger_input_controller.dart';
 import 'ledger_input_state.dart';
 
@@ -105,15 +108,20 @@ class _LedgerTableState extends ConsumerState<LedgerTable> {
     final controller = ref.read(ledgerInputProvider.notifier);
     _scrollToIfSelected(state.selectedCell);
 
+    // 文字が大きいときは列幅も広げる（固定幅のままだと数字が「…」で切れ、摘要が1文字ずつ折り返す）。
+    // 表は横スクロールなので、広げても画面からはみ出さない。
+    final f = tableTextFactor(context);
+    // 金額（最大6桁）が「…」で切れない幅を、実際の文字の幅から求める（通常の大きさでは従来の幅のまま）。
+    final dataWidth = math.max(LedgerTable._dataColumnWidth, amountCellWidth(context, digits: 6));
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Table(
         border: TableBorder.all(color: Theme.of(context).colorScheme.outlineVariant),
         columnWidths: {
-          0: const FixedColumnWidth(LedgerTable._metaColumnWidth),
-          1: const FixedColumnWidth(LedgerTable._metaColumnWidth),
+          0: FixedColumnWidth(LedgerTable._metaColumnWidth * f),
+          1: FixedColumnWidth(LedgerTable._metaColumnWidth * f),
           for (var i = 0; i < columns.length; i++)
-            i + 2: const FixedColumnWidth(LedgerTable._dataColumnWidth),
+            i + 2: FixedColumnWidth(dataWidth),
         },
         children: [
           TableRow(
@@ -253,7 +261,8 @@ class _ValueCell extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 48,
+        // 文字が大きいときは高さを伸ばす（固定高さだと数字が枠からはみ出す）。
+        constraints: const BoxConstraints(minHeight: 48),
         alignment: Alignment.center,
         color: background,
         padding: const EdgeInsets.symmetric(horizontal: 4),

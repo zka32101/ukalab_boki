@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import 'account_catalog.dart';
+import '../practice/table_text_factor.dart';
 import 'account_picker_sheet.dart';
 import 'journal_input_controller.dart';
 import 'journal_input_state.dart';
@@ -30,12 +31,14 @@ class JournalInputTable extends ConsumerWidget {
   /// 問題では [boki3AccountsLegacy] を渡す（手形科目を選べるようにするため）。
   final List<AccountDef> accountPool;
 
+  static const double _removeColumnWidth = 32;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(journalInputProvider);
     final controller = ref.read(journalInputProvider.notifier);
 
-    return Column(
+    final table = Column(
       children: [
         const _TableHeaderRow(),
         for (var i = 0; i < state.rows.length; i++)
@@ -59,6 +62,36 @@ class JournalInputTable extends ConsumerWidget {
           ),
       ],
     );
+
+    // 幅が足りないとき（狭い端末・大きい文字）は、金額を豆粒のように縮めて読めなくするより、
+    // 表に必要な幅を確保して横にスクロールできるようにする。
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minWidth = _minTableWidth(context, withMark: cellDiffs != null);
+        if (!constraints.hasBoundedWidth || constraints.maxWidth >= minWidth) return table;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(width: minWidth, child: table),
+        );
+      },
+    );
+  }
+
+  /// 金額セルの文字を最大でも [_maxShrink] 倍までしか縮めずに済む表の幅。
+  /// 実際の文字の幅（フォント・文字倍率込み）から求めるので、文字が大きいほど広くなる。
+  static double _minTableWidth(BuildContext context, {required bool withMark}) {
+    const maxDigits = 8; // 金額の想定最大桁数
+    const maxShrink = 0.6;
+    const cellChrome = 4 + 16; // セルの外側の余白＋内側の左右余白
+    const markWidth = 20.0; // 答え合わせ後の ✓／✕ アイコン分
+    const accountSample = '勘定科目'; // 科目名は折り返せるので、せめて4文字分
+    final mark = withMark ? markWidth : 0.0;
+    final amountCell = measureTextWidth(context, '8' * maxDigits) * maxShrink + cellChrome + mark;
+    final accountCell = measureTextWidth(context, accountSample) + cellChrome + mark;
+    // 列の比率は 科目4：金額3：科目4：金額3、右端に削除ボタン分の幅。
+    final byAmount = amountCell * 14 / 3;
+    final byAccount = accountCell * 14 / 4;
+    return (byAmount > byAccount ? byAmount : byAccount) + _removeColumnWidth;
   }
 
   Future<void> _handleSelect(BuildContext context, WidgetRef ref, JournalCellRef cell) async {

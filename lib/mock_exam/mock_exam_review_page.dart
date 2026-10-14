@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../journal_input/journal_result_banner.dart';
 import '../ledger_input/ledger_result_banner.dart';
 import '../term/explanation_with_terms.dart';
@@ -21,7 +22,7 @@ class MockExamReviewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('解答結果の詳細')),
+      appBar: wrappingAppBar(context, '解答結果の詳細'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -119,7 +120,12 @@ class _ChoiceReview extends StatelessWidget {
             children: [
               Icon(correct ? Icons.check_circle : Icons.cancel, color: color),
               const SizedBox(width: 8),
-              Text(correct ? '正解です' : '不正解です', style: theme.textTheme.titleMedium?.copyWith(color: color)),
+              Expanded(
+                child: Text(
+                  correct ? '正解です' : '不正解です',
+                  style: theme.textTheme.titleMedium?.copyWith(color: color),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 4),

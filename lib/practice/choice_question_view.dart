@@ -2,6 +2,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 
 import '../term/explanation_with_terms.dart';
+import 'question_body_layout.dart';
 
 /// 選択式（type: choice）問題1問分の画面。問題文・選択肢・答え合わせをまとめる。
 /// [JournalQuestionView]（lib/journal_input/）と並ぶ、第2問の理論問題向けの
@@ -83,40 +84,34 @@ class _ChoiceQuestionViewState extends State<ChoiceQuestionView> {
     final theme = Theme.of(context);
     final correct = _selected == widget.answerIndex;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return QuestionBodyLayout(
+      scrollChildren: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(widget.prompt, style: theme.textTheme.titleMedium),
         ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              for (var i = 0; i < widget.choices.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: ChoiceTile(
-                    label: _labelFor(i),
-                    text: widget.choices[i],
-                    state: _stateFor(i),
-                    onTap: _answered ? null : () => setState(() => _selected = i),
-                  ),
-                ),
-              if (_answered && widget.feedbackBuilder != null && _selected != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8, bottom: 8),
-                  child: widget.feedbackBuilder!(_selected!),
-                ),
-            ],
+        for (var i = 0; i < widget.choices.length; i++)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: ChoiceTile(
+              label: _labelFor(i),
+              text: widget.choices[i],
+              state: _stateFor(i),
+              onTap: _answered ? null : () => setState(() => _selected = i),
+            ),
           ),
-        ),
+        if (_answered && widget.feedbackBuilder != null && _selected != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: widget.feedbackBuilder!(_selected!),
+          ),
         if (_answered)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: _ChoiceResultBanner(correct: correct, explanation: widget.explanation),
           ),
+      ],
+      bottomChildren: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: !_answered
@@ -158,9 +153,11 @@ class _ChoiceResultBanner extends StatelessWidget {
             children: [
               Icon(correct ? Icons.check_circle : Icons.cancel, color: color),
               const SizedBox(width: 8),
-              Text(
-                correct ? '正解です' : '不正解です',
-                style: theme.textTheme.titleMedium?.copyWith(color: color),
+              Expanded(
+                child: Text(
+                  correct ? '正解です' : '不正解です',
+                  style: theme.textTheme.titleMedium?.copyWith(color: color),
+                ),
               ),
             ],
           ),
