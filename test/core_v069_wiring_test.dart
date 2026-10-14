@@ -64,11 +64,12 @@ void main() {
       );
 
   group('ホーム', () {
-    testWidgets('今日の復習は「今日やること」、推しの成長は「学習の記録」にある（見出しは4つのまま）', (tester) async {
+    testWidgets('今日の復習は「今日やること」、推しの成長の見張り役は「学習の記録」にある（吹き出しは無く、見出しは4つのまま）', (tester) async {
       SharedPreferences.setMockInitialValues({});
       await pumpApp(tester, size: const Size(800, 6000), scale: 1.0);
       expect(inGroup('今日やること', TodayReviewCard), findsOneWidget);
-      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthSection), findsOneWidget); // 祝福の見張り役は残す
+      expect(find.byType(OshiGrowthBubble, skipOffstage: false), findsNothing); // 吹き出しはホームに出さない
       expect(find.byType(HomeSectionHeader), findsNWidgets(4));
       expect(find.byType(OshiGrowthCelebrationCard), findsNothing); // 記録が無いので祝福は出ない
       expect(tester.takeException(), isNull);
@@ -78,7 +79,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await pumpApp(tester, size: const Size(320, 8000), scale: 2.0);
       expect(inGroup('今日やること', TodayReviewCard), findsOneWidget);
-      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthSection), findsOneWidget); // 祝福の見張り役は残す
+      expect(find.byType(OshiGrowthBubble, skipOffstage: false), findsNothing); // 吹き出しはホームに出さない
       expect(find.byType(HomeSectionHeader), findsNWidgets(4));
       expect(tester.takeException(), isNull);
     });
@@ -95,7 +97,8 @@ void main() {
 
       // 期限が来ているので、復習カードに「やってみる」ボタンがある。
       expect(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(FilledButton)), findsOneWidget);
-      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthSection), findsOneWidget); // 祝福の見張り役は残す
+      expect(find.byType(OshiGrowthBubble, skipOffstage: false), findsNothing); // 吹き出しはホームに出さない
       expect(find.byType(HomeSectionHeader), findsNWidgets(4));
       expect(tester.takeException(), isNull);
     });

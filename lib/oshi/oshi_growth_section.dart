@@ -19,9 +19,9 @@ OshiGrowthProgress oshiGrowthProgressFrom(List<ProgressRecord> records) => OshiG
       studyDays: {for (final r in records) _day(r.at)}.length,
     );
 
-/// ホーム「学習の記録」の推しの成長。これまでの積み重ねへの反応（[OshiGrowthBubble]）を出し、
-/// 節目に届いたら一度だけ祝福（[showOshiGrowthDialog]）。祝福はホームが最前面のときだけ出す
-/// （演習中は出さず、戻ったときに出る）。
+/// ホーム「学習の記録」に置く、推しの成長の節目の見張り役。吹き出し（[OshiGrowthBubble]）はホームに出さない
+/// （常時表示は「推しの一言」だけ）。節目に届いたら一度だけ祝福（[showOshiGrowthDialog]）。
+/// 祝福はホームが最前面のときだけ出す（演習中は出さず、戻ったときに出る）。
 class OshiGrowthSection extends StatefulWidget {
   const OshiGrowthSection({super.key, required this.progressStore, this.store});
 
@@ -37,8 +37,6 @@ class OshiGrowthSection extends StatefulWidget {
 class _OshiGrowthSectionState extends State<OshiGrowthSection> with RouteAware {
   late final OshiGrowthService _service =
       OshiGrowthService(store: widget.store ?? SharedPreferencesOshiGrowthStore(kExamId));
-  OshiGrowthProgress _progress = const OshiGrowthProgress();
-  bool _loaded = false;
   bool _checking = false;
   ModalRoute<Object?>? _route;
 
@@ -79,10 +77,6 @@ class _OshiGrowthSectionState extends State<OshiGrowthSection> with RouteAware {
       final records = await widget.progressStore.loadRecords();
       final progress = oshiGrowthProgressFrom(records);
       if (!mounted) return;
-      setState(() {
-        _progress = progress;
-        _loaded = true;
-      });
       // ホームが最前面でなければ確認しない（祝福済みにせず、戻ったときに祝う）。
       if (ModalRoute.of(context)?.isCurrent ?? false) {
         await _service.load();
@@ -100,10 +94,6 @@ class _OshiGrowthSectionState extends State<OshiGrowthSection> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    if (!_loaded) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: OshiGrowthBubble(progress: _progress),
-    );
+    return const SizedBox.shrink();
   }
 }
