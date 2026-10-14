@@ -200,10 +200,10 @@ void main() {
           await step();
           for (var i = 0; i < s.turns.length; i++) {
             tally.add('${s.scenarioId} ${i + 1}ターン目', errors.drain());
-            await tester.tap(find.text('答え合わせ'), warnIfMissed: false);
+            await tester.tap(find.text('答え合わせ'));
             await step();
             tally.add('${s.scenarioId} ${i + 1}ターン目(答え合わせ後)', errors.drain());
-            await tester.tap(find.text('次の問題へ'), warnIfMissed: false);
+            await tester.tap(find.text('次の問題へ'));
             await step();
           }
           tally.add('${s.scenarioId} 結果', errors.drain());
@@ -226,9 +226,17 @@ void main() {
       addTearDown(errors.dispose);
       await tester.pumpWidget(app(Scaffold(body: SettingsPage(progressStore: InMemoryProgressStore()))));
       await settle(tester);
-      await tester.scrollUntilVisible(find.text('解答記録をリセットする'), 200, scrollable: find.byType(Scrollable).first);
-      await tester.tap(find.text('解答記録をリセットする'));
-      await settle(tester);
+      try {
+        // 見えている(組み立て済み)だけでは画面の外のことがあるので、画面内に入れてから押す。
+        await tester.scrollUntilVisible(find.text('解答記録をリセットする'), 200, scrollable: find.byType(Scrollable).first);
+        await tester.ensureVisible(find.text('解答記録をリセットする'));
+        await tester.pump();
+        await tester.tap(find.text('解答記録をリセットする'));
+        await settle(tester);
+      } catch (_) {
+        errors.dispose(); // 本当の失敗理由が隠れないよう、例外の記録を戻してから投げ直す
+        rethrow;
+      }
       expect(find.text('リセットする'), findsOneWidget);
       final tally = ProblemTally()..add('dialog', errors.drain());
       errors.dispose();

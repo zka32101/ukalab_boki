@@ -14,6 +14,13 @@ import 'test_support.dart';
 
 /// 全問題（仕訳・伝票・証憑・選択式・帳簿・精算表）の演習画面が、狭い幅・大きい文字・小さい高さで
 /// RenderFlex overflow しないことを、解答前と答え合わせ後の両方で確認する。
+/// 画面内に入れてから押す（画面外を押して黙って外れる、ということが無いようにする）。
+Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pump();
+  await tester.tap(finder);
+}
+
 void main() {
   late List<Question> questions;
 
@@ -55,12 +62,12 @@ void main() {
 
           // 答え合わせ（選択式は1つ目を選んでから）。
           if (type == QuestionType.choice && find.byType(ChoiceTile).evaluate().isNotEmpty) {
-            await tester.tap(find.byType(ChoiceTile).first, warnIfMissed: false);
+            await tapVisible(tester, find.byType(ChoiceTile).first);
             await tester.pump();
           }
           final check = find.text('答え合わせ');
           if (check.evaluate().isNotEmpty) {
-            await tester.tap(check.first, warnIfMissed: false);
+            await tapVisible(tester, check.first);
             await tester.pump();
             await tester.pump(const Duration(milliseconds: 50));
             err = errors.drain();
@@ -93,7 +100,7 @@ void main() {
         var err = errors.drain();
         if (err.isNotEmpty) problems.add('${q.qid}(解答前)', err);
         if (find.byType(HandsFreeChoiceTile).evaluate().isNotEmpty) {
-          await tester.tap(find.byType(HandsFreeChoiceTile).first, warnIfMissed: false);
+          await tapVisible(tester, find.byType(HandsFreeChoiceTile).first);
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 50));
           err = errors.drain();
@@ -124,7 +131,7 @@ void main() {
       await tester.tapAt(const Offset(2, 2)); // 外側をタップして閉じる
       await tester.pump(const Duration(milliseconds: 400));
 
-      await tester.tap(find.byType(InkWell).first, warnIfMissed: false);
+      await tapVisible(tester, find.byType(InkWell).first);
       await tester.pump(const Duration(milliseconds: 400));
       problems.add('科目ピッカー', errors.drain());
       errors.dispose();
