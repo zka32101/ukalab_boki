@@ -4,6 +4,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel;
+import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
@@ -147,6 +148,7 @@ class _SessionBody extends ConsumerStatefulWidget {
 class _SessionBodyState extends ConsumerState<_SessionBody> {
   void _recordProgress(String qid, String subjectId, {required bool correct}) {
     unawaited(recordDailyAnswer(ref));
+    final coins = coinNotifierOrNull(ref);
     final now = DateTime.now();
     unawaited(
       widget.progressStore
@@ -157,7 +159,9 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             // 「今日の復習」の期限に来ている問題なら結果を反映する（履歴と同じ時刻で）。
             await recordReviewResult(qid, correct: correct, now: now);
             progressRevision.value++;
-            unawaited(recordStudyToday());
+            await recordStudyToday();
+            // 初めて解く問題なら学習コイン（失敗しても学習は止めない）。
+            await earnAnswerCoin(coins, qid);
           }),
     );
   }
