@@ -30,9 +30,11 @@ class JournalResultBanner extends StatelessWidget {
             children: [
               Icon(result.isCorrect ? Icons.check_circle : Icons.cancel, color: color),
               const SizedBox(width: 8),
-              Text(
-                result.isCorrect ? '正解です' : '不正解です',
-                style: theme.textTheme.titleMedium?.copyWith(color: color),
+              Expanded(
+                child: Text(
+                  result.isCorrect ? '正解です' : '不正解です',
+                  style: theme.textTheme.titleMedium?.copyWith(color: color),
+                ),
               ),
             ],
           ),

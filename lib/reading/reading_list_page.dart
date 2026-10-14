@@ -5,6 +5,7 @@ import 'package:ukalab_core/glossary.dart' show openTermCard;
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../exam_data/exam_data_cache.dart';
 import '../hands_free/hands_free_state.dart';
 import '../practice/practice_page.dart';
@@ -35,7 +36,7 @@ class _ReadingListPageState extends State<ReadingListPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('章ごとの解説読み物')),
+      appBar: wrappingAppBar(context, '章ごとの解説読み物'),
       body: FutureBuilder<(List<ChapterReading>, ExamConfig)>(
         future: _future,
         builder: (context, snapshot) {
@@ -113,7 +114,7 @@ class _ReadingDetailPageState extends ConsumerState<ReadingDetailPage> {
       isPremium: (ref.watch(entitlementStateProvider).valueOrNull ?? EntitlementState.free).hasPremium,
     );
     return Scaffold(
-      appBar: AppBar(title: Text(r.title)),
+      appBar: wrappingAppBar(context, r.title),
       body: FutureBuilder<(List<Term>, List<Question>)>(
         future: _future,
         builder: (context, snapshot) {

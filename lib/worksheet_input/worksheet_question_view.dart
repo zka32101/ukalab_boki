@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../journal_input/numeric_keypad.dart';
+import '../practice/question_body_layout.dart';
 import 'worksheet_diff_mapper.dart';
 import 'worksheet_input_controller.dart';
 import 'worksheet_result_banner.dart';
@@ -81,22 +82,19 @@ class _WorksheetQuestionViewState extends ConsumerState<WorksheetQuestionView> {
     final cellDiffs = _result == null ? null : buildWorksheetCellDiffs(_result!.diffs);
     final showKeypad = _result == null && state.selectedCell != null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return QuestionBodyLayout(
+      scrollChildren: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(widget.prompt, style: Theme.of(context).textTheme.titleMedium),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: WorksheetTable(
-              givenCells: widget.correctAnswer.givenCells,
-              blankCells: widget.correctAnswer.blankCells,
-              cellDiffs: cellDiffs,
-              readOnly: _result != null,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: WorksheetTable(
+            givenCells: widget.correctAnswer.givenCells,
+            blankCells: widget.correctAnswer.blankCells,
+            cellDiffs: cellDiffs,
+            readOnly: _result != null,
           ),
         ),
         if (_result != null)
@@ -104,6 +102,8 @@ class _WorksheetQuestionViewState extends ConsumerState<WorksheetQuestionView> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: WorksheetResultBanner(result: _result!, explanation: widget.explanation),
           ),
+      ],
+      bottomChildren: [
         if (showKeypad)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

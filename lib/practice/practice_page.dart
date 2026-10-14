@@ -8,6 +8,7 @@ import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../evidence_input/evidence_question_view.dart';
 import '../exam_data/current_level.dart';
 import '../exam_data/exam_data_cache.dart';
@@ -104,10 +105,9 @@ class _PracticePageState extends State<PracticePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.title ?? (widget.restrictToQids == null ? '問題を練習する' : '間違えた問題を復習する'),
-        ),
+      appBar: wrappingAppBar(
+        context,
+        widget.title ?? (widget.restrictToQids == null ? '問題を練習する' : '間違えた問題を復習する'),
       ),
       body: SafeArea(
         child: FutureBuilder<PracticeSession>(
@@ -176,22 +176,36 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Text(
-                '${session.index + 1} / ${session.questions.length}問目',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              if (isPriorityQuestion) ...[
-                const SizedBox(width: 8),
-                Icon(Icons.replay, size: 16, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 2),
-                Text(
-                  '苦手な問題を復習中',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
+              // 問題番号と「苦手な問題を復習中」は、狭い幅・大きい文字では折り返して全部見せる。
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '${session.index + 1} / ${session.questions.length}問目',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    if (isPriorityQuestion)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.replay, size: 16, color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              '苦手な問題を復習中',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
-              ],
-              const Spacer(),
+              ),
               IconButton(
                 tooltip: 'メモ',
                 icon: const Icon(Icons.sticky_note_2_outlined),

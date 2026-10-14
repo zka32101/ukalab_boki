@@ -7,6 +7,7 @@ import '../journal_input/account_picker_sheet.dart';
 import '../journal_input/journal_question_view.dart';
 import '../journal_input/journal_result_banner.dart';
 import '../journal_input/numeric_keypad.dart';
+import '../practice/question_body_layout.dart';
 import 'voucher_input_controller.dart';
 import 'voucher_input_state.dart';
 import 'voucher_kind.dart';
@@ -172,37 +173,34 @@ class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> 
     final readOnly = _result != null;
     final showKeypad = !readOnly && input.selectedField == VoucherSelectedField.amount;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return QuestionBodyLayout(
+      scrollChildren: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(widget.prompt, style: theme.textTheme.titleMedium),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('勘定科目', style: theme.textTheme.labelMedium),
-                const SizedBox(height: 4),
-                _SlipFieldCell(
-                  text: input.account != null ? accountNameOf(input.account!) : '',
-                  selected: !readOnly && input.selectedField == VoucherSelectedField.account,
-                  onTap: readOnly ? null : _selectAccount,
-                ),
-                const SizedBox(height: 16),
-                Text('金額', style: theme.textTheme.labelMedium),
-                const SizedBox(height: 4),
-                _SlipFieldCell(
-                  text: input.amount?.toString() ?? '',
-                  alignEnd: true,
-                  selected: !readOnly && input.selectedField == VoucherSelectedField.amount,
-                  onTap: readOnly ? null : () => controller.selectField(VoucherSelectedField.amount),
-                ),
-              ],
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('勘定科目', style: theme.textTheme.labelMedium),
+              const SizedBox(height: 4),
+              _SlipFieldCell(
+                text: input.account != null ? accountNameOf(input.account!) : '',
+                selected: !readOnly && input.selectedField == VoucherSelectedField.account,
+                onTap: readOnly ? null : _selectAccount,
+              ),
+              const SizedBox(height: 16),
+              Text('金額', style: theme.textTheme.labelMedium),
+              const SizedBox(height: 4),
+              _SlipFieldCell(
+                text: input.amount?.toString() ?? '',
+                alignEnd: true,
+                selected: !readOnly && input.selectedField == VoucherSelectedField.amount,
+                onTap: readOnly ? null : () => controller.selectField(VoucherSelectedField.amount),
+              ),
+            ],
           ),
         ),
         if (_result != null)
@@ -210,6 +208,8 @@ class _SingleLineVoucherFormState extends ConsumerState<_SingleLineVoucherForm> 
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: JournalResultBanner(result: _result!, explanation: widget.explanation),
           ),
+      ],
+      bottomChildren: [
         if (showKeypad)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

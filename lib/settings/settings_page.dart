@@ -24,6 +24,8 @@ class SettingsPage extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        // 文字が大きいときに、題名と本文が画面に収まらず切れないよう、スクロールできるようにする。
+        scrollable: true,
         title: const Text('解答記録をリセットしますか？'),
         content: const Text(
           '演習・模擬試験の解答記録と科目別の正答率がすべて削除されます。この操作は取り消せません。',

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ukalab_core/glossary.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../exam_data/exam_data_cache.dart';
 
 /// 「学ぶ」タブから開く用語集。一覧は core の [GlossaryListView]（検索・「覚えた」チェック・
@@ -29,8 +30,9 @@ class _TermListPageState extends State<TermListPage> {
   Widget build(BuildContext context) {
     final subjectLabel = widget.initialSubjectLabel;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.initialSubjectId != null && subjectLabel != null ? '用語集（$subjectLabel）' : '用語集'),
+      appBar: wrappingAppBar(
+        context,
+        widget.initialSubjectId != null && subjectLabel != null ? '用語集（$subjectLabel）' : '用語集',
       ),
       body: FutureBuilder<List<Term>>(
         future: _termsFuture,

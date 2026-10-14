@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:ukalab_core/ui.dart' show MockExamAnalysisCard;
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../evidence_input/evidence_question_view.dart';
 import '../exam_data/current_level.dart';
 import '../exam_data/exam_data_cache.dart';
@@ -64,7 +65,7 @@ class _MockExamPageState extends State<MockExamPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('模擬試験')),
+      appBar: wrappingAppBar(context, '模擬試験'),
       body: SafeArea(
         child: FutureBuilder<_MockExamData>(
           future: _dataFuture,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../journal_input/account_catalog.dart';
 import '../journal_input/journal_question_view.dart';
 import '../journal_input/journal_result_banner.dart';
@@ -80,9 +81,7 @@ class _CompanyScenarioPlayPageState extends State<CompanyScenarioPlayPage> {
     }
     final turn = _session.current!;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.scenario.companyName}（${_session.index + 1}/${_session.turnCount}）'),
-      ),
+      appBar: wrappingAppBar(context, '${widget.scenario.companyName}（${_session.index + 1}/${_session.turnCount}）'),
       body: SafeArea(
         child: JournalQuestionView(
           key: ValueKey(turn.turnId),
@@ -107,27 +106,36 @@ class _IntroView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(scenario.companyName)),
+      appBar: wrappingAppBar(context, scenario.companyName),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(scenario.industry, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
-              const SizedBox(height: 8),
-              Text(scenario.companyName, style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 16),
-              Text(scenario.introText, style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 16),
-              Text(
-                '初期資本金: ${scenario.initialCapital}円 / 全${scenario.turns.length}ターン',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+        // 文字が大きいと縦に収まらないので、全体をスクロールにし、開始ボタンは余白があるときだけ下に寄せる。
+        child: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(scenario.industry, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary)),
+                    const SizedBox(height: 8),
+                    Text(scenario.companyName, style: theme.textTheme.headlineSmall),
+                    const SizedBox(height: 16),
+                    Text(scenario.introText, style: theme.textTheme.bodyLarge),
+                    const SizedBox(height: 16),
+                    Text(
+                      '初期資本金: ${scenario.initialCapital}円 / 全${scenario.turns.length}ターン',
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+                    ),
+                    const Spacer(),
+                    const SizedBox(height: 16),
+                    FilledButton(onPressed: onStart, child: const Text('経営を始める')),
+                  ],
+                ),
               ),
-              const Spacer(),
-              FilledButton(onPressed: onStart, child: const Text('経営を始める')),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -146,7 +154,7 @@ class _ResultView extends StatelessWidget {
     final correctCount = session.turnCount - session.wrongCount;
 
     return Scaffold(
-      appBar: AppBar(title: Text('${session.scenario.companyName} 経営成績')),
+      appBar: wrappingAppBar(context, '${session.scenario.companyName} 経営成績'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),

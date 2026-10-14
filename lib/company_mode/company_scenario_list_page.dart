@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../exam_data/exam_data_cache.dart';
 import 'company_mode_history_store.dart';
 import 'company_scenario_play_page.dart';
@@ -58,7 +59,7 @@ class _CompanyScenarioListPageState extends ConsumerState<CompanyScenarioListPag
     ref.watch(entitlementStateProvider);
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('会社を経営する')),
+      appBar: wrappingAppBar(context, '会社を経営する'),
       body: FutureBuilder<List<CompanyScenario>>(
         future: _scenariosFuture,
         builder: (context, snapshot) {

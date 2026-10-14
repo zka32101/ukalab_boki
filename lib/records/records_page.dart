@@ -249,12 +249,8 @@ class _ReviewTile extends StatelessWidget {
             subjectNameOf[question.subjectId] ?? question.subjectId,
             style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
           ),
-          Text(
-            question.prompt,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium,
-          ),
+          // 問題文は省略せず全文を折り返して見せる（途中で切れると何の問題か分からないため）。
+          Text(question.prompt, style: theme.textTheme.bodyMedium),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../common/wrapping_app_bar.dart';
 import '../exam_data/exam_data_cache.dart';
 import '../oshi/oshi_recap.dart';
 import '../practice/practice_page.dart';
@@ -82,7 +83,7 @@ class _MistakeNotePageState extends State<MistakeNotePage> {
     final byQid = {for (final q in _questions) q.qid: q};
     final entries = _entries;
     return Scaffold(
-      appBar: AppBar(title: const Text('間違いノート')),
+      appBar: wrappingAppBar(context, '間違いノート'),
       body: entries == null
           ? const Center(child: CircularProgressIndicator())
           : MistakeNoteView(
