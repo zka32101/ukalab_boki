@@ -1,0 +1,18 @@
+name: Question quality
+
+# ukalab_core の再利用可能ワークフローを呼ぶだけ（警告のみ。strict は付けない）。
+# 簿記は仕訳問題（journal）が多く、選択式（choices）を持つ問題のみが対象になる。
+on:
+  pull_request:
+    paths:
+      - 'assets/exam/boki3.questions.jsonl'
+      - '.github/workflows/question-quality.yml'
+
+jobs:
+  question-quality:
+    uses: zka32101/ukalab_core/.github/workflows/question-quality.yml@main
+    with:
+      files: 'assets/exam/boki3.questions.jsonl'
+      choices_key: choices
+      answer_key: answerIndex
+      category_key: subjectId
