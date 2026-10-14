@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/ui.dart' show MockExamAnalysisCard;
 import 'package:ukalab_core/ukalab_core.dart';
 
@@ -93,17 +95,17 @@ class _MockExamData {
 
 enum _MockExamStage { intro, running, result }
 
-class _MockExamBody extends StatefulWidget {
+class _MockExamBody extends ConsumerStatefulWidget {
   const _MockExamBody({required this.data, required this.progressStore});
 
   final _MockExamData data;
   final ProgressStore progressStore;
 
   @override
-  State<_MockExamBody> createState() => _MockExamBodyState();
+  ConsumerState<_MockExamBody> createState() => _MockExamBodyState();
 }
 
-class _MockExamBodyState extends State<_MockExamBody> {
+class _MockExamBodyState extends ConsumerState<_MockExamBody> {
   _MockExamStage _stage = _MockExamStage.intro;
   late List<Question> _questions;
   int _index = 0;
@@ -162,6 +164,7 @@ class _MockExamBodyState extends State<_MockExamBody> {
     if (_finishing) return;
     _finishing = true;
     _timer?.cancel();
+    final coins = coinNotifierOrNull(ref);
     final result = scoreMockExam(
       questions: _questions,
       answers: _answers,
@@ -181,12 +184,15 @@ class _MockExamBodyState extends State<_MockExamBody> {
       );
     }
     progressRevision.value++;
-    unawaited(recordStudyToday());
-    if (!mounted) return;
-    setState(() {
-      _result = result;
-      _stage = _MockExamStage.result;
-    });
+    await recordStudyToday();
+    if (mounted) {
+      setState(() {
+        _result = result;
+        _stage = _MockExamStage.result;
+      });
+    }
+    // 模擬を終えたコイン（合格点以上なら合格コインも）。失敗しても結果表示は止めない。
+    await earnMockCoins(coins, examId: widget.data.exam.examId, passed: result.passed);
   }
 
   /// `ukalab_core` の `scoreMockExam` が内部で使う正誤判定と同じロジック

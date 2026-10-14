@@ -5,6 +5,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import 'package:app_common_kit/hands_free_tts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ukalab_core.dart';
 
@@ -94,6 +95,7 @@ class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
   /// 通常の演習（PracticePage）と同じ記録経路: デイリーミッション・解答記録・進捗の再読込・学習日。
   void _record(Question q, {required bool correct}) {
     unawaited(recordDailyAnswer(ref));
+    final coins = coinNotifierOrNull(ref);
     final now = DateTime.now();
     unawaited(
       widget.progressStore
@@ -104,7 +106,8 @@ class _NagaraSessionPageState extends ConsumerState<NagaraSessionPage> {
             // 「今日の復習」の期限に来ている問題なら結果を反映する（履歴と同じ時刻で）。
             await recordReviewResult(q.qid, correct: correct, now: now);
             progressRevision.value++;
-            unawaited(recordStudyToday());
+            await recordStudyToday();
+            await earnAnswerCoin(coins, q.qid);
           }),
     );
   }
