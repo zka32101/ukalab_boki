@@ -349,11 +349,17 @@ class _MockExamRunningView extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${index + 1} / $total問目', style: theme.textTheme.labelLarge),
-              Text(
-                '残り $_timeLabel',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: remainingSec <= 60 ? theme.colorScheme.error : null,
+              Flexible(
+                child: Text('${index + 1} / $total問目', style: theme.textTheme.labelLarge),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '残り $_timeLabel',
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: remainingSec <= 60 ? theme.colorScheme.error : null,
+                  ),
                 ),
               ),
             ],
@@ -468,9 +474,11 @@ class _MockExamResultView extends StatelessWidget {
               size: 32,
             ),
             const SizedBox(width: 12),
-            Text(
-              result.passed ? '合格ライン到達' : '合格ラインまであと${result.shortBy}点',
-              style: theme.textTheme.headlineSmall,
+            Expanded(
+              child: Text(
+                result.passed ? '合格ライン到達' : '合格ラインまであと${result.shortBy}点',
+                style: theme.textTheme.headlineSmall,
+              ),
             ),
           ],
         ),
@@ -489,13 +497,17 @@ class _MockExamResultView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(subject.name),
-                  Text(
-                    '${line.score} / ${line.max}点'
-                    '${result.subjectShortfalls.containsKey(subject.subjectId) ? '（足切り未達）' : ''}',
-                    style: result.subjectShortfalls.containsKey(subject.subjectId)
-                        ? TextStyle(color: theme.colorScheme.error)
-                        : null,
+                  Expanded(child: Text(subject.name)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      '${line.score} / ${line.max}点'
+                      '${result.subjectShortfalls.containsKey(subject.subjectId) ? '（足切り未達）' : ''}',
+                      textAlign: TextAlign.end,
+                      style: result.subjectShortfalls.containsKey(subject.subjectId)
+                          ? TextStyle(color: theme.colorScheme.error)
+                          : null,
+                    ),
                   ),
                 ],
               ),

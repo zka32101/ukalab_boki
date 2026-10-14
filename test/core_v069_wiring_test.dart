@@ -168,11 +168,13 @@ void main() {
   });
 
   group('模擬試験の結果画面', () {
-    testWidgets('結果画面に分析カードが出る', (tester) async {
+    testWidgets('結果分析カードが出る（幅320・文字2倍でオーバーフローなし）', (tester) async {
       SharedPreferences.setMockInitialValues({});
-      tester.view.physicalSize = const Size(800, 8000);
+      tester.view.physicalSize = const Size(320, 8000);
       tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await tester.pumpWidget(ProviderScope(
         overrides: studyNotesTestOverrides(),
         child: MaterialApp(home: MockExamPage(progressStore: InMemoryProgressStore())),
@@ -198,30 +200,6 @@ void main() {
       });
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.byType(MockExamAnalysisCard), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-
-    // 解答中の画面（既存）は幅320・文字2倍ではみ出すため、分析カード単体で確認する。
-    testWidgets('分析カードは幅320・文字2倍でオーバーフローしない', (tester) async {
-      tester.view.physicalSize = const Size(320, 4000);
-      tester.view.devicePixelRatio = 1;
-      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-      addTearDown(tester.view.reset);
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      final analysis = const MockExamAnalysisEngine().analyze([
-        for (var i = 0; i < 4; i++) MockExamAnswer(topicId: 'q1_shiwake', correct: i == 0),
-        for (var i = 0; i < 4; i++) const MockExamAnswer(topicId: 'q2_choubo', correct: true),
-        for (var i = 0; i < 3; i++) MockExamAnswer(topicId: 'q3_kessan', correct: i == 0),
-      ]);
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: ListView(children: [
-            MockExamAnalysisCard(analysis: analysis, topicLabel: (id) => '第1問 仕訳（$id）'),
-          ]),
-        ),
-      ));
-      await tester.pumpAndSettle();
       expect(find.byType(MockExamAnalysisCard), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
