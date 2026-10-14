@@ -9,7 +9,6 @@ import 'package:ukalab_boki3/exam_data/exam_data_cache.dart';
 import 'package:ukalab_boki3/main.dart';
 import 'package:ukalab_boki3/mock_exam/mock_exam_page.dart';
 import 'package:ukalab_boki3/oshi/oshi_growth_section.dart';
-import 'package:ukalab_boki3/review/today_review_section.dart';
 import 'package:ukalab_boki3/practice/choice_question_view.dart';
 import 'package:ukalab_boki3/review/review_schedule.dart';
 import 'package:ukalab_core/ui.dart';
@@ -84,31 +83,20 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    // 記録があると既存の「科目別の正答率」（progress_summary_card.dart）が幅320・文字2倍ではみ出すため、
-    // 追加した2つの部品（復習の期限あり／節目の祝福あり）を単体で確認する。
-    testWidgets('幅320・文字2倍でオーバーフローしない（追加した部品。復習の期限あり・節目の祝福あり）', (tester) async {
+    testWidgets('幅320・文字2倍でオーバーフローしない（復習の期限あり・節目の祝福あり）', (tester) async {
       SharedPreferences.setMockInitialValues(seededPrefs());
-      tester.view.physicalSize = const Size(320, 8000);
-      tester.view.devicePixelRatio = 1;
-      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
-      addTearDown(tester.view.reset);
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: ListView(children: [
-            TodayReviewSection(progressStore: appProgressStore),
-            OshiGrowthSection(progressStore: appProgressStore),
-          ]),
-        ),
-      ));
-      await settle(tester);
+      await pumpApp(tester, size: const Size(320, 8000), scale: 2.0);
+      // 回答10問の節目の祝福が一度だけ出る。閉じるとホームが見える。
       expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.byType(FilledButton)));
       await settle(tester);
       expect(find.byType(OshiGrowthCelebrationCard), findsNothing);
+
+      // 期限が来ているので、復習カードに「やってみる」ボタンがある。
       expect(find.descendant(of: find.byType(TodayReviewCard), matching: find.byType(FilledButton)), findsOneWidget);
-      expect(find.byType(OshiGrowthBubble), findsOneWidget);
+      expect(inGroup('学習の記録', OshiGrowthBubble), findsOneWidget);
+      expect(find.byType(HomeSectionHeader), findsNWidgets(4));
       expect(tester.takeException(), isNull);
     });
 

@@ -130,20 +130,33 @@ class _SubjectProgressRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(name, style: theme.textTheme.bodyMedium),
-                if (isWeak) ...[
-                  const SizedBox(width: 6),
-                  Icon(Icons.warning_amber_rounded, size: 16, color: theme.colorScheme.error),
-                ],
-              ],
+            // 狭い幅・大きい文字でも溢れないよう、科目名は残り幅に収めて折り返す。
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: name),
+                    if (isWeak) ...[
+                      const WidgetSpan(child: SizedBox(width: 6)),
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Icon(Icons.warning_amber_rounded, size: 16, color: theme.colorScheme.error),
+                      ),
+                    ],
+                  ],
+                ),
+                style: theme.textTheme.bodyMedium,
+              ),
             ),
-            Text(
-              '${progress.pct.toStringAsFixed(0)}%（${progress.correct}/${progress.total}問）',
-              style: theme.textTheme.bodySmall,
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                '${progress.pct.toStringAsFixed(0)}%（${progress.correct}/${progress.total}問）',
+                style: theme.textTheme.bodySmall,
+                textAlign: TextAlign.end,
+              ),
             ),
           ],
         ),
