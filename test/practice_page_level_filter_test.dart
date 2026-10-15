@@ -20,7 +20,17 @@ void main() {
   test('旧区分表専用の問題（手形の仕訳）が存在する', () {
     final legacyOnly = questions.where((q) => q.levelId == 'level3_until_2027_03').toList();
     expect(legacyOnly, isNotEmpty);
-    expect(legacyOnly.every((q) => q.journalAnswer!.lines.any((l) => l.account.startsWith('notes_') || l.account == 'cash_over_short')), isTrue);
+    // 仕訳は手形・現金過不足の科目を使うこと。選択式（手形記入帳など）は topicId が notes_ で始まること。
+    expect(
+      legacyOnly.every((q) {
+        final journal = q.journalAnswer;
+        if (journal != null) {
+          return journal.lines.any((l) => l.account.startsWith('notes_') || l.account == 'cash_over_short');
+        }
+        return q.topicId.startsWith('notes_');
+      }),
+      isTrue,
+    );
   });
 
   test('新区分表の時期（level3_from_2027_04）は旧区分表専用の問題を除外する', () {

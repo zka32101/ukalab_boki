@@ -672,3 +672,18 @@ Chromiumをヘッドレスモードで動かし、スクリーンショットで
   再検討する
 - `test/company_scenarios_data_test.dart`・`test/learn_company_mode_navigation_test.dart`を5シナリオ
   に合わせて更新。`flutter analyze` 0件・`flutter test`（75件）成功
+
+## 欠落分野の問題追加（2026-10-14）
+
+- `boki3.questions.jsonl` を176問→195問にした（journal型134・choice型38・ledger型13・worksheet型10）。
+  再レビューで0件だった6分野を追加: 有価証券（売買目的の購入・売却）3問、訂正仕訳（誤記訂正）4問、
+  再振替仕訳3問、貯蔵品（未使用の収入印紙・切手・消耗品の決算振替）3問、手形記入帳（受取・支払、
+  旧区分表向け `level3_until_2027_03`）3問、繰越試算表・帳簿締切3問。
+- 有価証券・貯蔵品の問題に必要な科目（有価証券・貯蔵品・有価証券売却益・有価証券売却損）を
+  `lib/journal_input/account_catalog.dart` に追加した（`docs/accounts_v1_official.md` 末尾参照）。
+  従来は「科目一覧を独断で拡張しない」方針で見送っていた分野のため、**3級の範囲かどうかを簿記講師等の
+  専門家が確認する必要がある**。
+- 追加により出題プールが増えたため、`practice_page_legacy_level_ui*_test.dart` の期待件数を
+  93→96問・84→87問に更新した（第1問の仕訳が3問増えたため）。
+- choice型の正解位置は 0:9・1:10・2:9・3:10 で均等。数値は生成スクリプトで検算済み（仕訳の貸借一致、
+  株式売却の損益、繰越試算表の貸借一致）。

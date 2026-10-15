@@ -59,6 +59,8 @@ const List<AccountDef> boki3Accounts = [
   ),
   AccountDef(code: 'guarantee_deposit', name: '差入保証金', group: AccountGroup.asset),
   AccountDef(code: 'merchandise_inventory', name: '繰越商品', group: AccountGroup.asset),
+  AccountDef(code: 'securities', name: '有価証券', group: AccountGroup.asset),
+  AccountDef(code: 'stored_goods', name: '貯蔵品', group: AccountGroup.asset),
   AccountDef(code: 'building', name: '建物', group: AccountGroup.asset),
   AccountDef(code: 'equipment', name: '備品', group: AccountGroup.asset),
   AccountDef(code: 'vehicle', name: '車両運搬具', group: AccountGroup.asset),
@@ -131,6 +133,11 @@ const List<AccountDef> boki3Accounts = [
     group: AccountGroup.revenue,
   ),
   AccountDef(code: 'miscellaneous_income', name: '雑益', group: AccountGroup.revenue),
+  AccountDef(
+    code: 'gain_on_sale_of_securities',
+    name: '有価証券売却益',
+    group: AccountGroup.revenue,
+  ),
 
   // 費用
   AccountDef(code: 'purchases', name: '仕入', group: AccountGroup.expense),
@@ -176,6 +183,11 @@ const List<AccountDef> boki3Accounts = [
     group: AccountGroup.expense,
   ),
   AccountDef(code: 'miscellaneous_loss', name: '雑損', group: AccountGroup.expense),
+  AccountDef(
+    code: 'loss_on_sale_of_securities',
+    name: '有価証券売却損',
+    group: AccountGroup.expense,
+  ),
 ];
 
 /// 旧区分表（2022年度版）でのみ使う追加科目（新区分表の [boki3Accounts] には含まれない）。
