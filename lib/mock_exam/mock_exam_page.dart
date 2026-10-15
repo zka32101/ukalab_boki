@@ -213,6 +213,10 @@ class _MockExamBodyState extends ConsumerState<_MockExamBody> {
         final expected = q.ledgerAnswer;
         if (expected == null || answer is! List<LedgerCell>) return false;
         return judgeLedger(expected, answer).isCorrect;
+      case QuestionType.trueFalse:
+      case QuestionType.cloze:
+      case QuestionType.reverseLookup:
+        return false; // 簿記コレは新タイプ未対応（データに含まれない）
     }
   }
 
@@ -444,6 +448,10 @@ class _MockExamRunningView extends StatelessWidget {
           onAnswered: (_, cells) => onLedgerAnswered(question.qid, cells),
           onNext: onNext,
         );
+      case QuestionType.trueFalse:
+      case QuestionType.cloze:
+      case QuestionType.reverseLookup:
+        return const SizedBox.shrink(); // 未対応タイプ（データに含まれない）
     }
   }
 }
