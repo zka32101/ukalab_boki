@@ -5,6 +5,8 @@ import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromoSection;
 import '../hands_free/hands_free_section.dart';
 import '../progress/progress_revision.dart';
 import '../progress/progress_store.dart';
+import '../data/peer_stats_prep.dart';
+import '../widgets/peer_stats_settings_tile.dart';
 import 'cross_promo_config.dart';
 
 /// 「設定」タブ。アプリの説明と、解答記録をリセットする機能を提供する。
@@ -70,6 +72,8 @@ class SettingsPage extends StatelessWidget {
         const TextScaleSetting(strings: TextScaleStrings.ja),
         const SizedBox(height: 32),
         const HandsFreeSection(),
+        // 送信側が未実装の間は出さない（kPeerStatsSettingsVisible = false）。
+        if (kPeerStatsSettingsVisible) PeerStatsSettingsTile(settings: SharedPrefsPeerStatsSettings()),
         if (purchaseSection != null) ...[
           const SizedBox(height: 32),
           purchaseSection!,
