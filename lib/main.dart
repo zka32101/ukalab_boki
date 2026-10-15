@@ -41,6 +41,7 @@ import 'progress/progress_summary_card.dart';
 import 'records/records_page.dart';
 import 'settings/boki_data_parts.dart';
 import 'settings/settings_page.dart';
+import 'startup/boot_splash.dart';
 import 'startup/legacy_key_migration.dart';
 import 'term/term_list_page.dart';
 
@@ -57,6 +58,8 @@ bool get _useRevenueCat => !kIsWeb && Platform.isAndroid && _rcGoogleKey.isNotEm
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 初期化中はスプラッシュを出す（初期化完了後に runApp で本体へ差し替える）。
+  runApp(const BootSplashApp());
   await migrateLegacyProgressKeys();
   await loadSavedThemeMode();
   // 文字の大きさ（アプリ内設定）を復元する
