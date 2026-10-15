@@ -141,7 +141,13 @@ void main() {
   });
 
   group('出題形式', () {
-    for (final type in QuestionType.values) {
+    // ukalab_core v0.75.0 で追加された trueFalse/cloze/reverseLookup は、本アプリのデータに無いので対象外。
+    for (final type in const [
+      QuestionType.choice,
+      QuestionType.journal,
+      QuestionType.worksheet,
+      QuestionType.ledger,
+    ]) {
       testWidgets('${type.name} 形式の問題でも演習画面が起動する', (tester) async {
         SharedPreferences.setMockInitialValues({});
         final all = await tester.runAsync(loadQuestions) as List<Question>;
