@@ -240,7 +240,9 @@ class _Cell extends StatelessWidget {
         onTap: () => onTap(cell),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 44),
+          // 科目名が2行に折り返しても行の高さが変わらないよう、2行分の高さを最小にする
+          // (空欄と入力済みで高さが違うと、次の欄の位置がずれて入力しづらい)。
+          constraints: const BoxConstraints(minHeight: 64),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.12) : null,
