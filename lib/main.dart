@@ -30,6 +30,7 @@ import 'oshi/boki3_coin_overrides.dart';
 import 'oshi/boki3_oshi_card.dart';
 import 'oshi/oshi_growth_section.dart';
 import 'oshi/oshi_home_cards.dart';
+import 'widgets/cert_prop_badge.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
 import 'purchase/weak_drill_card.dart';
@@ -203,8 +204,18 @@ class _HomePage extends StatelessWidget {
     return ListView(
       children: [
         const SizedBox(height: 24),
-        Center(
-          child: Text('うかラボ 簿記3級', style: Theme.of(context).textTheme.titleLarge),
+        // 資格小物は右端に控えめに（装飾のみ。狭い幅ではタイトルが折り返す）。
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('うかラボ 簿記3級', style: Theme.of(context).textTheme.titleLarge),
+              ),
+              const SizedBox(width: 8),
+              const CertPropBadge(),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Boki3OshiCard(store: appProgressStore),
