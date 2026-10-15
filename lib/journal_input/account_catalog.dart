@@ -51,6 +51,8 @@ const List<AccountDef> boki3Accounts = [
   AccountDef(code: 'advance_paid', name: '立替金', group: AccountGroup.asset),
   AccountDef(code: 'accrued_revenue', name: '未収入金', group: AccountGroup.asset), // 注意: 商品以外の売却代金などの未収入金。経過勘定の「未収収益」ではない
   AccountDef(code: 'advance_payment', name: '前払金', group: AccountGroup.asset),
+  AccountDef(code: 'prepaid_expense', name: '前払費用', group: AccountGroup.asset),
+  AccountDef(code: 'accrued_income', name: '未収収益', group: AccountGroup.asset),
   AccountDef(code: 'temporary_payment', name: '仮払金', group: AccountGroup.asset),
   AccountDef(
     code: 'gift_certificates_receivable',
@@ -90,6 +92,7 @@ const List<AccountDef> boki3Accounts = [
   AccountDef(code: 'deposit_received', name: '預り金', group: AccountGroup.liability),
   AccountDef(code: 'temporary_receipt', name: '仮受金', group: AccountGroup.liability),
   AccountDef(code: 'unpaid_expense', name: '未払費用', group: AccountGroup.liability),
+  AccountDef(code: 'unearned_revenue', name: '前受収益', group: AccountGroup.liability),
   AccountDef(
     code: 'unpaid_corporate_tax',
     name: '未払法人税等',
