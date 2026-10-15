@@ -287,7 +287,7 @@ Chromiumをヘッドレスモードで動かし、スクリーンショットで
   (2) `app_common_kit`が単一のbarrel export（`app_common_kit.dart`）で`entitlement`（RevenueCat）・
   `stats`（Firebase）・`ads`（Google Mobile Ads）を無条件にexportしているため、v0.10.0への更新で
   ukalab-boki3が使わない`cloud_firestore`・`firebase_core`等が新たに依存に加わった。現時点では
-  android/iosのプラットフォームディレクトリが無くネイティブビルドをしていないため問題は顕在化していないが、
+  iosのプラットフォームディレクトリが無く（androidは追加済み）ネイティブビルドをしていないため問題は顕在化していないが、
   将来これらを追加してネイティブビルドする際、Firebase設定（`google-services.json`等）が無いとビルドが
   失敗する可能性がある。`app_common_kit`側でexportを機能ごとに分割する設計変更が必要になるため、
   今回は見送り、既知の技術的負債として記録するに留めた。
