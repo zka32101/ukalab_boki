@@ -90,6 +90,10 @@ class _QuestionReview extends StatelessWidget {
         );
       case QuestionType.choice:
         return _ChoiceReview(question: question, selectedIndex: answer is int ? answer! as int : null);
+      case QuestionType.trueFalse:
+      case QuestionType.cloze:
+      case QuestionType.reverseLookup:
+        return const SizedBox.shrink(); // 未対応タイプ（データに含まれない）
     }
   }
 }

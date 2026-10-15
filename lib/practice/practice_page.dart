@@ -320,6 +320,10 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           },
           onNext: () => setState(() {}),
         );
+      case QuestionType.trueFalse:
+      case QuestionType.cloze:
+      case QuestionType.reverseLookup:
+        return const SizedBox.shrink(); // 未対応タイプ（データに含まれない）
     }
   }
 }
