@@ -33,6 +33,7 @@ import 'oshi/oshi_home_cards.dart';
 import 'widgets/cert_prop_badge.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
+import 'purchase/revenuecat_key.dart';
 import 'purchase/weak_drill_card.dart';
 import 'purchase/weak_summary_section.dart';
 import 'reading/reading_list_page.dart';
@@ -51,10 +52,17 @@ final ProgressStore appProgressStore = SharedPreferencesProgressStore();
 /// 会社経営モードのプレイ結果の保存先。端末内保存（アプリ全体で共有）。
 final CompanyModeHistoryStore appCompanyModeHistoryStore = SharedPreferencesCompanyModeHistoryStore();
 
-/// RevenueCat の公開SDKキー(Google Play用)。コミットせず、ビルド時に
-/// `--dart-define=RC_GOOGLE_KEY=<値>` で渡す。未指定・Web・Android以外は偽の課金サービスで動く。
+/// RevenueCat の公開SDKキー。コミットせず、ビルド時に `--dart-define` で渡す。
+/// Android は `RC_GOOGLE_KEY`、iOS は `RC_APPLE_KEY`。未指定・Web・その他は偽の課金サービスで動く。
 const _rcGoogleKey = String.fromEnvironment('RC_GOOGLE_KEY');
-bool get _useRevenueCat => !kIsWeb && Platform.isAndroid && _rcGoogleKey.isNotEmpty;
+const _rcAppleKey = String.fromEnvironment('RC_APPLE_KEY');
+final String? _rcKey = selectRevenueCatKey(
+  isWeb: kIsWeb,
+  isAndroid: !kIsWeb && Platform.isAndroid,
+  isIOS: !kIsWeb && Platform.isIOS,
+  googleKey: _rcGoogleKey,
+  appleKey: _rcAppleKey,
+);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,10 +77,10 @@ void main() async {
   // 相互紹介（Firebase 初期化＋掲載リスト取得）。失敗しても起動を止めず、起動もブロックしない。
   unawaited(UkalabCrossPromo.init());
 
-  // 課金（RevenueCat）。Android かつ RC_GOOGLE_KEY 指定時は本物、それ以外は偽（Web・テスト用）。
+  // 課金（RevenueCat）。Android(RC_GOOGLE_KEY)／iOS(RC_APPLE_KEY) のキー指定時は本物、それ以外は偽（Web・テスト用）。
   // Fake側の価格は競合調査を踏まえた暫定値で、運営者確認が必要（決定14）。
-  final EntitlementService entitlementService = _useRevenueCat
-      ? await RevenueCatEntitlementService.init(publicSdkKey: _rcGoogleKey)
+  final EntitlementService entitlementService = _rcKey != null
+      ? await RevenueCatEntitlementService.init(publicSdkKey: _rcKey!)
       : FakeEntitlementService(
     availableOffers: const [
       EntitlementOffer(
