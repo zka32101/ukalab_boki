@@ -3,7 +3,7 @@ import 'package:ukalab_core/ukalab_core.dart';
 
 void main() {
   test('choice 形式の displayPrompt は prompt と同じ', () {
-    final q = Question(
+    const q = Question(
       qid: 'a',
       examId: 'boki3',
       subjectId: 's',
