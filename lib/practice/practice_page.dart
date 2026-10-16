@@ -13,11 +13,12 @@ import '../common/wrapping_app_bar.dart';
 import '../evidence_input/evidence_question_view.dart';
 import '../exam_data/current_level.dart';
 import '../exam_data/exam_data_cache.dart';
+import '../exam_data/feature_flags.dart';
 import '../journal_input/account_catalog.dart';
 import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../progress/progress_revision.dart';
-import '../progress/progress_store.dart' show attachCause;
+import '../progress/progress_store.dart' show attachCause, markLatestCorrect;
 import '../review/review_schedule.dart' show recordReviewResult;
 import '../voucher_input/voucher_kind.dart';
 import '../voucher_input/voucher_question_view.dart';
@@ -36,7 +37,17 @@ class PracticePage extends StatefulWidget {
     this.subjectId,
     this.title,
     this.now,
+    this.questionsOverride,
+    this.newTypesEnabled = kNewQuestionTypesEnabled,
   });
+
+  /// テスト用: 指定すると問題データのロードの代わりにこの問題群を使う。
+  @visibleForTesting
+  final List<Question>? questionsOverride;
+
+  /// 新3タイプ（○×・空欄補充・説明から用語）を解答させるか。既定は
+  /// [kNewQuestionTypesEnabled]。false のときは新タイプを出題プールから除く。
+  final bool newTypesEnabled;
 
   /// 解答記録の保存先（ホーム画面の科目別正答率に反映される）。
   final ProgressStore progressStore;
@@ -75,7 +86,10 @@ class _PracticePageState extends State<PracticePage> {
   }
 
   Future<PracticeSession> _loadSession() async {
-    final questions = await loadQuestions();
+    final questions = widget.questionsOverride != null
+        ? filterByNewQuestionTypes(widget.questionsOverride!,
+            enabled: widget.newTypesEnabled)
+        : await loadQuestions();
     final restrict = widget.restrictToQids;
     final subjectId = widget.subjectId;
 
@@ -84,13 +98,14 @@ class _PracticePageState extends State<PracticePage> {
     // 一致するものだけを出す。復習（restrictToQids指定）は、過去の出題当時の
     // 問題をそのまま見られるよう、この絞り込みを行わない。
     final levelId = currentLevelId(now: widget.now);
-    final byLevel = questions.where((q) => q.levelId == null || q.levelId == levelId);
+    final byLevel =
+        questions.where((q) => q.levelId == null || q.levelId == levelId);
 
     final pool = restrict != null
         ? questions.where((q) => restrict.contains(q.qid)).toList()
         : subjectId != null
-        ? byLevel.where((q) => q.subjectId == subjectId).toList()
-        : byLevel.toList();
+            ? byLevel.where((q) => q.subjectId == subjectId).toList()
+            : byLevel.toList();
 
     // 直近の解答で不正解のまま放置されている問題（間隔反復の「期限切れ」相当）を
     // 先頭に優先出題する。`PracticeSession` 側は、対象の qid が pool になければ
@@ -100,7 +115,8 @@ class _PracticePageState extends State<PracticePage> {
     final poolQids = {for (final q in pool) q.qid};
     _priorityCount = priority.where(poolQids.contains).length;
 
-    return PracticeSession(pool: pool, size: pool.length, priorityQids: priority);
+    return PracticeSession(
+        pool: pool, size: pool.length, priorityQids: priority);
   }
 
   @override
@@ -108,7 +124,8 @@ class _PracticePageState extends State<PracticePage> {
     return Scaffold(
       appBar: wrappingAppBar(
         context,
-        widget.title ?? (widget.restrictToQids == null ? '問題を練習する' : '間違えた問題を復習する'),
+        widget.title ??
+            (widget.restrictToQids == null ? '問題を練習する' : '間違えた問題を復習する'),
       ),
       body: SafeArea(
         child: FutureBuilder<PracticeSession>(
@@ -124,6 +141,7 @@ class _PracticePageState extends State<PracticePage> {
               session: snapshot.data!,
               progressStore: widget.progressStore,
               priorityCount: _priorityCount,
+              newTypesEnabled: widget.newTypesEnabled,
             );
           },
         ),
@@ -133,7 +151,14 @@ class _PracticePageState extends State<PracticePage> {
 }
 
 class _SessionBody extends ConsumerStatefulWidget {
-  const _SessionBody({required this.session, required this.progressStore, this.priorityCount = 0});
+  const _SessionBody({
+    required this.session,
+    required this.progressStore,
+    this.priorityCount = 0,
+    this.newTypesEnabled = false,
+  });
+
+  final bool newTypesEnabled;
 
   final PracticeSession session;
   final ProgressStore progressStore;
@@ -153,16 +178,29 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
     unawaited(
       widget.progressStore
           .addRecord(
-            ProgressRecord(qid: qid, subjectId: subjectId, correct: correct, at: now),
-          )
+        ProgressRecord(
+            qid: qid, subjectId: subjectId, correct: correct, at: now),
+      )
           .then((_) async {
-            // 「今日の復習」の期限に来ている問題なら結果を反映する（履歴と同じ時刻で）。
-            await recordReviewResult(qid, correct: correct, now: now);
-            progressRevision.value++;
-            await recordStudyToday();
-            // 初めて解く問題なら学習コイン（失敗しても学習は止めない）。
-            await earnAnswerCoin(coins, qid);
-          }),
+        // 「今日の復習」の期限に来ている問題なら結果を反映する（履歴と同じ時刻で）。
+        await recordReviewResult(qid, correct: correct, now: now);
+        progressRevision.value++;
+        await recordStudyToday();
+        // 初めて解く問題なら学習コイン（失敗しても学習は止めない）。
+        await earnAnswerCoin(coins, qid);
+      }),
+    );
+  }
+
+  /// 自由入力の打ち間違いを本人の申告で正解に直す（履歴・復習予定も補正）。
+  void _selfReport(String qid) {
+    widget.session.markLastSelfReportedCorrect();
+    final now = DateTime.now();
+    unawaited(
+      markLatestCorrect(widget.progressStore, qid).then((_) async {
+        await recordReviewResult(qid, correct: true, now: now);
+        progressRevision.value++;
+      }),
     );
   }
 
@@ -195,14 +233,17 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.replay, size: 16, color: Theme.of(context).colorScheme.primary),
+                          Icon(Icons.replay,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary),
                           const SizedBox(width: 2),
                           Flexible(
                             child: Text(
                               '苦手な問題を復習中',
                               style: Theme.of(
                                 context,
-                              ).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
+                              ).textTheme.labelLarge?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary),
                             ),
                           ),
                         ],
@@ -230,19 +271,26 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
       context: context,
       isScrollControlled: true,
       builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
+        padding: EdgeInsets.fromLTRB(
+            16, 16, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
         child: QuestionMemoField(key: ValueKey(qid), qid: qid),
       ),
     );
   }
 
+  /// core の新形式画面は縦に伸びる Column なので、スクロールできる枠で包む。
+  Widget _scrollable(Widget child) =>
+      SingleChildScrollView(padding: const EdgeInsets.all(16), child: child);
+
   Widget _buildQuestion(Question current, PracticeSession session) {
     switch (current.type) {
       case QuestionType.journal:
         final voucherKind = voucherKindOfTopic(current.topicId);
-        void onJournalAnswered(JournalJudgeResult result, List<JournalLine> lines) {
+        void onJournalAnswered(
+            JournalJudgeResult result, List<JournalLine> lines) {
           session.answerJournal(lines);
-          _recordProgress(current.qid, current.subjectId, correct: result.isCorrect);
+          _recordProgress(current.qid, current.subjectId,
+              correct: result.isCorrect);
         }
         if (voucherKind != null) {
           return VoucherQuestionView(
@@ -272,7 +320,9 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           explanation: current.explanation,
           onAnswered: onJournalAnswered,
           onNext: () => setState(() {}),
-          accountPool: current.levelId == 'level3_until_2027_03' ? boki3AccountsLegacy : boki3Accounts,
+          accountPool: current.levelId == 'level3_until_2027_03'
+              ? boki3AccountsLegacy
+              : boki3Accounts,
         );
       case QuestionType.choice:
         return HandsFreeChoiceQuestion(
@@ -293,7 +343,8 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             question: current,
             selectedIndex: selectedIndex,
             includeCalculation: false,
-            onCause: (c) => unawaited(attachCause(widget.progressStore, current.qid, c)),
+            onCause: (c) =>
+                unawaited(attachCause(widget.progressStore, current.qid, c)),
           ),
         );
       case QuestionType.worksheet:
@@ -304,7 +355,8 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           explanation: current.explanation,
           onAnswered: (result, cells) {
             session.answerWorksheet(cells);
-            _recordProgress(current.qid, current.subjectId, correct: result.isCorrect);
+            _recordProgress(current.qid, current.subjectId,
+                correct: result.isCorrect);
           },
           onNext: () => setState(() {}),
         );
@@ -316,14 +368,58 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           explanation: current.explanation,
           onAnswered: (result, cells) {
             session.answerLedger(cells);
-            _recordProgress(current.qid, current.subjectId, correct: result.isCorrect);
+            _recordProgress(current.qid, current.subjectId,
+                correct: result.isCorrect);
           },
           onNext: () => setState(() {}),
         );
       case QuestionType.trueFalse:
+        if (!widget.newTypesEnabled) return const SizedBox.shrink();
+        return _scrollable(
+          TrueFalseQuestionView(
+          key: ValueKey(current.qid),
+          question: current,
+          onAnswered: (r) {
+            session.answerTrueFalse(r.boolAnswer ?? false);
+            _recordProgress(current.qid, current.subjectId, correct: r.correct);
+          },
+          onCause: (c) =>
+              unawaited(attachCause(widget.progressStore, current.qid, c)),
+          onNext: () => setState(() {}),
+          ),
+        );
       case QuestionType.cloze:
+        if (!widget.newTypesEnabled) return const SizedBox.shrink();
+        return _scrollable(
+          ClozeQuestionView(
+          key: ValueKey(current.qid),
+          question: current,
+          onAnswered: (r) {
+            session.answerCloze(r.blankAnswers ?? const {});
+            _recordProgress(current.qid, current.subjectId, correct: r.correct);
+          },
+          onSelfReported: () => _selfReport(current.qid),
+          onCause: (c) =>
+              unawaited(attachCause(widget.progressStore, current.qid, c)),
+          onNext: () => setState(() {}),
+          ),
+        );
       case QuestionType.reverseLookup:
-        return const SizedBox.shrink(); // 未対応タイプ（データに含まれない）
+        if (!widget.newTypesEnabled) return const SizedBox.shrink();
+        return _scrollable(
+          ReverseLookupQuestionView(
+          key: ValueKey(current.qid),
+          question: current,
+          onAnswered: (r) {
+            session.answerReverseLookup(r.text ?? '');
+            _recordProgress(current.qid, current.subjectId, correct: r.correct);
+          },
+          onSelfReported: () => _selfReport(current.qid),
+          onCause: (c) =>
+              unawaited(attachCause(widget.progressStore, current.qid, c)),
+          onNext: () => setState(() {}),
+          ),
+        );
     }
   }
 }
@@ -350,7 +446,9 @@ class _ResultView extends StatelessWidget {
             ? null
             : () => Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (_) => PracticePage(progressStore: progressStore, restrictToQids: wrongQids),
+                    builder: (_) => PracticePage(
+                        progressStore: progressStore,
+                        restrictToQids: wrongQids),
                   ),
                 ),
         retryLabel: '間違えた${wrongQids.length}問を復習する',

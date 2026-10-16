@@ -44,7 +44,8 @@ class ChoiceQuestionView extends StatefulWidget {
   State<ChoiceQuestionView> createState() => _ChoiceQuestionViewState();
 }
 
-class _ChoiceQuestionViewState extends State<ChoiceQuestionView> with TapGuardMixin<ChoiceQuestionView> {
+class _ChoiceQuestionViewState extends State<ChoiceQuestionView>
+    with TapGuardMixin<ChoiceQuestionView> {
   int? _selected;
   bool _answered = false;
 
@@ -110,7 +111,8 @@ class _ChoiceQuestionViewState extends State<ChoiceQuestionView> with TapGuardMi
         if (_answered)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: _ChoiceResultBanner(correct: correct, explanation: widget.explanation),
+            child: _ChoiceResultBanner(
+                correct: correct, explanation: widget.explanation),
           ),
       ],
       bottomChildren: [
@@ -122,8 +124,11 @@ class _ChoiceQuestionViewState extends State<ChoiceQuestionView> with TapGuardMi
                   child: Text(widget.revealResult ? '答え合わせ' : '次へ'),
                 )
               : (widget.onNext != null
-                  ? FilledButton(onPressed: guardTap(widget.onNext), child: const Text('次の問題へ'))
-                  : OutlinedButton(onPressed: _retry, child: const Text('もう一度'))),
+                  ? FilledButton(
+                      onPressed: guardTap(widget.onNext),
+                      child: const Text('次の問題へ'))
+                  : OutlinedButton(
+                      onPressed: _retry, child: const Text('もう一度'))),
         ),
       ],
     );

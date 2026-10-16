@@ -3,7 +3,8 @@ import 'progress_store.dart';
 /// 1科目分の正答率（`ukalab_core` の `SubjectProgress` と名前が衝突するため
 /// `SubjectAccuracy` と命名）。
 class SubjectAccuracy {
-  const SubjectAccuracy({required this.subjectId, required this.correct, required this.total});
+  const SubjectAccuracy(
+      {required this.subjectId, required this.correct, required this.total});
 
   final String subjectId;
   final int correct;
@@ -23,6 +24,7 @@ Map<String, SubjectAccuracy> summarizeBySubject(List<ProgressRecord> records) {
   }
   return {
     for (final id in total.keys)
-      id: SubjectAccuracy(subjectId: id, correct: correct[id] ?? 0, total: total[id]!),
+      id: SubjectAccuracy(
+          subjectId: id, correct: correct[id] ?? 0, total: total[id]!),
   };
 }
