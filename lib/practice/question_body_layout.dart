@@ -28,7 +28,9 @@ class QuestionBodyLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cap = constraints.hasBoundedHeight ? constraints.maxHeight * bottomMaxFraction : double.infinity;
+        final cap = constraints.hasBoundedHeight
+            ? constraints.maxHeight * bottomMaxFraction
+            : double.infinity;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

@@ -15,7 +15,9 @@ class BokiTapGuard {
   static Duration get effectiveDuration {
     final d = duration;
     if (d != null) return d;
-    final testing = WidgetsBinding.instance.runtimeType.toString().contains('TestWidgetsFlutterBinding');
+    final testing = WidgetsBinding.instance.runtimeType
+        .toString()
+        .contains('TestWidgetsFlutterBinding');
     return testing ? Duration.zero : defaultDuration;
   }
 }

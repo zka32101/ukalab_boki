@@ -61,7 +61,8 @@ class _ProgressSummaryCardState extends State<ProgressSummaryCard> {
     return FutureBuilder<_ProgressCardData>(
       future: _dataFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done || !snapshot.hasData) {
+        if (snapshot.connectionState != ConnectionState.done ||
+            !snapshot.hasData) {
           return const SizedBox.shrink();
         }
         final data = snapshot.data!;
@@ -75,18 +76,22 @@ class _ProgressSummaryCardState extends State<ProgressSummaryCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Align(alignment: Alignment.centerLeft, child: StreakBadge(days: data.streakDays)),
+                Align(
+                    alignment: Alignment.centerLeft,
+                    child: StreakBadge(days: data.streakDays)),
                 const SizedBox(height: 12),
                 Text('科目別の正答率', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
                 if (!hasAny)
                   Text(
                     '演習や模擬試験を解くと、ここに科目別の正答率が表示されます。',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: theme.colorScheme.outline),
                   )
                 else
                   for (final subject in data.exam.subjects)
-                    if (data.bySubject[subject.subjectId] case final s? when s.total > 0)
+                    if (data.bySubject[subject.subjectId] case final s?
+                        when s.total > 0)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _SubjectProgressRow(
@@ -105,7 +110,8 @@ class _ProgressSummaryCardState extends State<ProgressSummaryCard> {
 }
 
 class _ProgressCardData {
-  const _ProgressCardData({required this.exam, required this.bySubject, required this.streakDays});
+  const _ProgressCardData(
+      {required this.exam, required this.bySubject, required this.streakDays});
 
   final ExamConfig exam;
   final Map<String, SubjectAccuracy> bySubject;
@@ -113,7 +119,8 @@ class _ProgressCardData {
 }
 
 class _SubjectProgressRow extends StatelessWidget {
-  const _SubjectProgressRow({required this.subjectId, required this.name, required this.progress});
+  const _SubjectProgressRow(
+      {required this.subjectId, required this.name, required this.progress});
 
   final String subjectId;
   final String name;
@@ -124,7 +131,8 @@ class _SubjectProgressRow extends StatelessWidget {
     final theme = Theme.of(context);
     // 7割未満は「苦手科目」として強調する（模擬試験の合格ラインと揃える）。
     final isWeak = progress.pct < 70;
-    final barColor = isWeak ? theme.colorScheme.error : theme.colorScheme.primary;
+    final barColor =
+        isWeak ? theme.colorScheme.error : theme.colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +150,8 @@ class _SubjectProgressRow extends StatelessWidget {
                       const WidgetSpan(child: SizedBox(width: 6)),
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
-                        child: Icon(Icons.warning_amber_rounded, size: 16, color: theme.colorScheme.error),
+                        child: Icon(Icons.warning_amber_rounded,
+                            size: 16, color: theme.colorScheme.error),
                       ),
                     ],
                   ],
@@ -176,7 +185,8 @@ class _SubjectProgressRow extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => TermListPage(initialSubjectId: subjectId, initialSubjectLabel: name),
+                  builder: (_) => TermListPage(
+                      initialSubjectId: subjectId, initialSubjectLabel: name),
                 ),
               ),
               icon: const Icon(Icons.menu_book, size: 16),
