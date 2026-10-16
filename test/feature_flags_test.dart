@@ -3,6 +3,7 @@ import 'package:ukalab_boki3/exam_data/feature_flags.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 Question _q(String qid, QuestionType type) => Question(
+      answerBool: type == QuestionType.trueFalse ? true : null,
       qid: qid,
       examId: 'boki3',
       subjectId: 's',
