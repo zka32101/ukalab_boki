@@ -132,7 +132,7 @@ class _ReadingDetailPageState extends ConsumerState<ReadingDetailPage> {
             ],
             relatedQuestions: [
               for (final id in r.relatedQuestionIds)
-                if (questionById(id) case final q?) RelatedQuestionRef(questionId: id, label: q.prompt),
+                if (questionById(id) case final q?) RelatedQuestionRef(questionId: id, label: q.displayPrompt),
             ],
             bodyTermReferences: _termReferences(terms),
             onRelatedTermTap: (termId) {

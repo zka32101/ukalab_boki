@@ -250,7 +250,7 @@ class _ReviewTile extends StatelessWidget {
             style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
           ),
           // 問題文は省略せず全文を折り返して見せる（途中で切れると何の問題か分からないため）。
-          Text(question.prompt, style: theme.textTheme.bodyMedium),
+          Text(question.displayPrompt, style: theme.textTheme.bodyMedium),
         ],
       ),
     );
