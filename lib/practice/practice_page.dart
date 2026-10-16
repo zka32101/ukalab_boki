@@ -171,6 +171,13 @@ class _SessionBody extends ConsumerStatefulWidget {
 }
 
 class _SessionBodyState extends ConsumerState<_SessionBody> {
+  /// 解答済みで「次の問題へ」待ちの問題。[PracticeSession.current] は解答を記録した
+  /// 時点で次の問題へ進むため、解答直後に親の再描画などでこの画面が組み直されても、
+  /// 解答した問題の解説・正誤を出し続けるよう、解答した問題を保持して描く。
+  Question? _answered;
+
+  void _next() => setState(() => _answered = null);
+
   void _recordProgress(String qid, String subjectId, {required bool correct}) {
     unawaited(recordDailyAnswer(ref));
     final coins = coinNotifierOrNull(ref);
@@ -207,11 +214,13 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
-    final current = session.current;
+    final current = _answered ?? session.current;
     if (current == null) {
       return _ResultView(session: session, progressStore: widget.progressStore);
     }
-    final isPriorityQuestion = session.index < widget.priorityCount;
+    // 解答済みなら session.index は既に次の問題を指すので、1つ戻して表示中の問題の番号にする。
+    final shownIndex = _answered != null ? session.index - 1 : session.index;
+    final isPriorityQuestion = shownIndex < widget.priorityCount;
     return Column(
       children: [
         Padding(
@@ -226,7 +235,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      '${session.index + 1} / ${session.questions.length}問目',
+                      '${shownIndex + 1} / ${session.questions.length}問目',
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     if (isPriorityQuestion)
@@ -288,6 +297,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
         final voucherKind = voucherKindOfTopic(current.topicId);
         void onJournalAnswered(
             JournalJudgeResult result, List<JournalLine> lines) {
+          _answered = current;
           session.answerJournal(lines);
           _recordProgress(current.qid, current.subjectId,
               correct: result.isCorrect);
@@ -300,7 +310,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             kind: voucherKind,
             explanation: current.explanation,
             onAnswered: onJournalAnswered,
-            onNext: () => setState(() {}),
+            onNext: _next,
           );
         }
         if (current.topicId == 'voucher_reading') {
@@ -310,7 +320,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             correctAnswer: current.journalAnswer!,
             explanation: current.explanation,
             onAnswered: onJournalAnswered,
-            onNext: () => setState(() {}),
+            onNext: _next,
           );
         }
         return JournalQuestionView(
@@ -319,7 +329,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           correctAnswer: current.journalAnswer!,
           explanation: current.explanation,
           onAnswered: onJournalAnswered,
-          onNext: () => setState(() {}),
+          onNext: _next,
           accountPool: current.levelId == 'level3_until_2027_03'
               ? boki3AccountsLegacy
               : boki3Accounts,
@@ -332,10 +342,11 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           answerIndex: current.answerIndex,
           explanation: current.explanation,
           onAnswered: (selectedIndex, correct) {
+            _answered = current;
             session.answer(selectedIndex);
             _recordProgress(current.qid, current.subjectId, correct: correct);
           },
-          onNext: () => setState(() {}),
+          onNext: _next,
           // 選択式には独自の誤答診断が無いので、共通の原因ラベル・対策で補う。
           // 仕訳・帳簿・精算表は結果バナーの行ごとの診断があるため、重ねて出さない。
           feedbackBuilder: (selectedIndex) => AnswerFeedbackPanel(
@@ -354,11 +365,12 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           correctAnswer: current.worksheetAnswer!,
           explanation: current.explanation,
           onAnswered: (result, cells) {
+            _answered = current;
             session.answerWorksheet(cells);
             _recordProgress(current.qid, current.subjectId,
                 correct: result.isCorrect);
           },
-          onNext: () => setState(() {}),
+          onNext: _next,
         );
       case QuestionType.ledger:
         return LedgerQuestionView(
@@ -367,11 +379,12 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           correctAnswer: current.ledgerAnswer!,
           explanation: current.explanation,
           onAnswered: (result, cells) {
+            _answered = current;
             session.answerLedger(cells);
             _recordProgress(current.qid, current.subjectId,
                 correct: result.isCorrect);
           },
-          onNext: () => setState(() {}),
+          onNext: _next,
         );
       case QuestionType.trueFalse:
         if (!widget.newTypesEnabled) return const SizedBox.shrink();
@@ -380,12 +393,13 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           key: ValueKey(current.qid),
           question: current,
           onAnswered: (r) {
+            _answered = current;
             session.answerTrueFalse(r.boolAnswer ?? false);
             _recordProgress(current.qid, current.subjectId, correct: r.correct);
           },
           onCause: (c) =>
               unawaited(attachCause(widget.progressStore, current.qid, c)),
-          onNext: () => setState(() {}),
+          onNext: _next,
           ),
         );
       case QuestionType.cloze:
@@ -395,13 +409,14 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           key: ValueKey(current.qid),
           question: current,
           onAnswered: (r) {
+            _answered = current;
             session.answerCloze(r.blankAnswers ?? const {});
             _recordProgress(current.qid, current.subjectId, correct: r.correct);
           },
           onSelfReported: () => _selfReport(current.qid),
           onCause: (c) =>
               unawaited(attachCause(widget.progressStore, current.qid, c)),
-          onNext: () => setState(() {}),
+          onNext: _next,
           ),
         );
       case QuestionType.reverseLookup:
@@ -411,13 +426,14 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           key: ValueKey(current.qid),
           question: current,
           onAnswered: (r) {
+            _answered = current;
             session.answerReverseLookup(r.text ?? '');
             _recordProgress(current.qid, current.subjectId, correct: r.correct);
           },
           onSelfReported: () => _selfReport(current.qid),
           onCause: (c) =>
               unawaited(attachCause(widget.progressStore, current.qid, c)),
-          onNext: () => setState(() {}),
+          onNext: _next,
           ),
         );
     }
