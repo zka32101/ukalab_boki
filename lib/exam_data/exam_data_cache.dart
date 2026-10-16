@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:ukalab_core/ukalab_core.dart';
 
+import 'feature_flags.dart';
+
 Future<List<Question>>? _questionsFuture;
 Future<ExamConfig>? _examConfigFuture;
 Future<List<Term>>? _termsFuture;
@@ -25,7 +27,7 @@ Future<List<Question>> _loadQuestions() async {
   if (parsed.issues.isNotEmpty) {
     throw StateError('問題データの読み込みに失敗しました: ${parsed.issues}');
   }
-  return parsed.questions;
+  return filterByNewQuestionTypes(parsed.questions);
 }
 
 /// `assets/exam/boki3.exam.json` を読み込む（同様にキャッシュする）。
