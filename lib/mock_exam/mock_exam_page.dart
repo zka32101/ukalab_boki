@@ -193,6 +193,10 @@ class _MockExamBodyState extends ConsumerState<_MockExamBody> {
     }
     // 模擬を終えたコイン（合格点以上なら合格コインも）。失敗しても結果表示は止めない。
     await earnMockCoins(coins, examId: widget.data.exam.examId, passed: result.passed);
+    // 結果を見せたあとに全画面広告（頻度は AdGate が制限する）。
+    if (mounted) {
+      await ref.read(adGateProvider).maybeShowInterstitial(InterstitialTrigger.mockExamResult);
+    }
   }
 
   /// `ukalab_core` の `scoreMockExam` が内部で使う正誤判定と同じロジック
@@ -565,6 +569,10 @@ class _MockExamResultView extends StatelessWidget {
             }
             return id;
           },
+        ),
+        const SizedBox(height: 12),
+        Consumer(
+          builder: (context, ref, _) => Center(child: ref.watch(adGateProvider).banner(BannerPlacement.result)),
         ),
         const SizedBox(height: 12),
         OutlinedButton(
