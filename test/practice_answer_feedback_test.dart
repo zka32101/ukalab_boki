@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ukalab_boki3/practice/practice_page.dart';
-import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import 'test_support.dart';
