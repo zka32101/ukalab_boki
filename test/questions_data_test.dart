@@ -28,6 +28,10 @@ void main() {
           QuestionType.choice,
           QuestionType.worksheet,
           QuestionType.ledger,
+          // 新3形式（フラグ kNewQuestionTypesEnabled が false の間は出題されない）
+          QuestionType.trueFalse,
+          QuestionType.cloze,
+          QuestionType.reverseLookup,
         ),
       );
     }
