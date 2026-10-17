@@ -3,6 +3,7 @@ import 'package:ukalab_core/ukalab_core.dart';
 
 import '../exam_prep/exam_prep_data.dart' show kExamId;
 import '../mistake_note/mistake_note_data.dart';
+import '../data/mock_exam_quota.dart';
 import '../oshi/oshi_recap.dart';
 
 /// 「今日の復習」の予定の保存先（端末内。キー `ukalab_boki3_review_schedule`）。
@@ -45,6 +46,8 @@ Future<void> recordReviewResult(
     final hit = items.where((i) => i.qid == qid && reviewSchedulerEngine.isDue(i, now));
     if (hit.isEmpty) return;
     await s.write(reviewSchedulerEngine.applyResult(items, qid, correct: correct, now: now));
+    // 期限が来ていた復習に答えた回数を1日ごとに数える(復習の案内の無料枠用)。
+    await (await todayReviewQuota(isPremium: false)).tryConsume();
   } catch (_) {
     // 復習予定の更新に失敗しても、解答の記録と演習は続ける。
   }
