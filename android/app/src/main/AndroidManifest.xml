@@ -30,12 +30,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- AdMob アプリID。簿記3級は未登録のため Google 公式テストID（本番IDは AdMob 登録後に差し替える）。
+        <!-- AdMob アプリID（うかラボ 簿記3級・Android。2026-10-17 に AdMob へ登録）。
              共通基盤(app_common_kit)が広告SDK(google_mobile_ads)を含むため、アプリIDが無いと
              起動時に MobileAdsInitProvider が IllegalStateException(Missing application ID)で落ちる。 -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-5058227312086483~5159926861" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
