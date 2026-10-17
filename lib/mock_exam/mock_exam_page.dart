@@ -7,6 +7,8 @@ import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/ui.dart' show MockExamAnalysisCard;
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../data/mock_exam_quota.dart';
+
 import '../common/wrapping_app_bar.dart';
 import '../evidence_input/evidence_question_view.dart';
 import '../exam_data/current_level.dart';
@@ -127,6 +129,31 @@ class _MockExamBodyState extends ConsumerState<_MockExamBody> {
     super.dispose();
   }
 
+  /// 無料版は月の回数に上限がある。使える回数が残っていれば1回分を使って始める。
+  Future<void> _tryStart() async {
+    final isPremium = (ref.read(entitlementStateProvider).valueOrNull ?? EntitlementState.free).hasPremium;
+    final quota = await mockExamQuota(isPremium: isPremium);
+    if (!await quota.tryConsume()) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('今月の模擬試験は使い切りました'),
+          content: const Text(
+            '無料版の模擬試験は、月に1回までです。来月になると、また受けられます。\n'
+            'プレミアムなら、回数の制限なく受けられます（設定から購入できます）。',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
+          ],
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    _start();
+  }
+
   void _start() {
     _questions = pickMockExamQuestions(pool: widget.data.pool, level: _level);
     _answers.clear();
@@ -228,7 +255,7 @@ class _MockExamBodyState extends ConsumerState<_MockExamBody> {
           exam: widget.data.exam,
           level: _level,
           poolSize: widget.data.pool.length,
-          onStart: _start,
+          onStart: _tryStart,
         );
       case _MockExamStage.running:
         return _MockExamRunningView(
