@@ -14,11 +14,12 @@ import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/glossary.dart' show LearnedTermsStore;
 import 'package:ukalab_core/reminder.dart';
 import 'package:ukalab_core/ui.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'company_mode/company_mode_history_store.dart';
+import 'data/ad_unit_ids.dart';
 import 'exam_data/exam_data_cache.dart';
 import 'exam_prep/exam_prep_entry.dart';
 import 'hands_free/hands_free_state.dart';
@@ -41,6 +42,7 @@ import 'review/today_review_section.dart';
 import 'progress/progress_summary_card.dart';
 import 'records/records_page.dart';
 import 'settings/boki_data_parts.dart';
+import 'services/no_ads_backend.dart';
 import 'settings/settings_page.dart';
 import 'startup/boot_splash.dart';
 import 'startup/legacy_key_migration.dart';
@@ -102,6 +104,21 @@ void main() async {
     },
   );
 
+  // 広告。本番ユニットIDはビルド時に --dart-define で渡す（ad_unit_ids.dart）。
+  // Web・iOS は広告を出さない。リリースで未指定なら空のIDで、広告なしのまま起動する。
+  final adIds = adUnitIdsFor(
+    isWeb: kIsWeb,
+    isAndroid: !kIsWeb && Platform.isAndroid,
+    isRelease: kReleaseMode,
+  );
+  final adGate = await AdGate.init(
+    config: AdConfig(unitIds: adIds),
+    // IDが空(Web・iOS、または本番IDが未指定のリリース)なら、広告SDKを使わず、広告なしで起動する。
+    backend: adIds.banner.isEmpty && adIds.interstitial.isEmpty ? NoAdsBackend() : null,
+    adsHidden: () => entitlementService.state.adsHidden,
+    isRelease: kReleaseMode,
+  );
+
   final studyNotes = await studyNotesOverrides('boki3');
   final dailyGoal = await dailyGoalOverrides('boki3');
   final reminder = await reminderOverrides('boki3');
@@ -112,6 +129,7 @@ void main() async {
     ProviderScope(
       overrides: [
         entitlementServiceProvider.overrideWithValue(entitlementService),
+        adGateProvider.overrideWithValue(adGate),
         ...studyNotes,
         ...dailyGoal,
         ...reminder,
@@ -275,6 +293,11 @@ class _HomePage extends StatelessWidget {
             child: Card(child: MistakeNoteTile(progressStore: appProgressStore)),
           ),
         ),
+        const SizedBox(height: 8),
+        Consumer(
+          builder: (context, ref, _) => Center(child: ref.watch(adGateProvider).banner(BannerPlacement.home)),
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }

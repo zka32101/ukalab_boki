@@ -199,6 +199,14 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
     );
   }
 
+  /// 次の問題へ進む。最後の問題だったら、結果表示のタイミングで全画面広告を出す。
+  void _afterNext() {
+    _next();
+    if (widget.session.current == null) {
+      unawaited(ref.read(adGateProvider).maybeShowInterstitial(InterstitialTrigger.sessionEnd));
+    }
+  }
+
   /// 自由入力の打ち間違いを本人の申告で正解に直す（履歴・復習予定も補正）。
   void _selfReport(String qid) {
     widget.session.markLastSelfReportedCorrect();
@@ -310,7 +318,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             kind: voucherKind,
             explanation: current.explanation,
             onAnswered: onJournalAnswered,
-            onNext: _next,
+            onNext: _afterNext,
           );
         }
         if (current.topicId == 'voucher_reading') {
@@ -320,7 +328,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             correctAnswer: current.journalAnswer!,
             explanation: current.explanation,
             onAnswered: onJournalAnswered,
-            onNext: _next,
+            onNext: _afterNext,
           );
         }
         return JournalQuestionView(
@@ -329,7 +337,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           correctAnswer: current.journalAnswer!,
           explanation: current.explanation,
           onAnswered: onJournalAnswered,
-          onNext: _next,
+          onNext: _afterNext,
           accountPool: current.levelId == 'level3_until_2027_03'
               ? boki3AccountsLegacy
               : boki3Accounts,
@@ -346,7 +354,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             session.answer(selectedIndex);
             _recordProgress(current.qid, current.subjectId, correct: correct);
           },
-          onNext: _next,
+          onNext: _afterNext,
           // 選択式には独自の誤答診断が無いので、共通の原因ラベル・対策で補う。
           // 仕訳・帳簿・精算表は結果バナーの行ごとの診断があるため、重ねて出さない。
           feedbackBuilder: (selectedIndex) => AnswerFeedbackPanel(
@@ -370,7 +378,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             _recordProgress(current.qid, current.subjectId,
                 correct: result.isCorrect);
           },
-          onNext: _next,
+          onNext: _afterNext,
         );
       case QuestionType.ledger:
         return LedgerQuestionView(
@@ -384,7 +392,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             _recordProgress(current.qid, current.subjectId,
                 correct: result.isCorrect);
           },
-          onNext: _next,
+          onNext: _afterNext,
         );
       case QuestionType.trueFalse:
         if (!widget.newTypesEnabled) return const SizedBox.shrink();
@@ -399,7 +407,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           },
           onCause: (c) =>
               unawaited(attachCause(widget.progressStore, current.qid, c)),
-          onNext: _next,
+          onNext: _afterNext,
           ),
         );
       case QuestionType.cloze:
@@ -416,7 +424,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           onSelfReported: () => _selfReport(current.qid),
           onCause: (c) =>
               unawaited(attachCause(widget.progressStore, current.qid, c)),
-          onNext: _next,
+          onNext: _afterNext,
           ),
         );
       case QuestionType.reverseLookup:
@@ -433,7 +441,7 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
           onSelfReported: () => _selfReport(current.qid),
           onCause: (c) =>
               unawaited(attachCause(widget.progressStore, current.qid, c)),
-          onNext: _next,
+          onNext: _afterNext,
           ),
         );
     }
@@ -455,7 +463,12 @@ class _ResultView extends StatelessWidget {
         if (!r.correct) r.qid,
     };
     return Center(
-      child: ResultSummary(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ResultSummary(
         correct: correct,
         total: total,
         onRetry: wrongQids.isEmpty
@@ -470,6 +483,13 @@ class _ResultView extends StatelessWidget {
         retryLabel: '間違えた${wrongQids.length}問を復習する',
         onClose: () => Navigator.of(context).pop(),
         closeLabel: '戻る',
+      ),
+            const SizedBox(height: 16),
+            Consumer(
+              builder: (context, ref, _) => ref.watch(adGateProvider).banner(BannerPlacement.result),
+            ),
+          ],
+        ),
       ),
     );
   }
