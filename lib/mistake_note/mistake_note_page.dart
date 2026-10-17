@@ -91,7 +91,7 @@ class _MistakeNotePageState extends State<MistakeNotePage> {
               entries: [for (final e in entries) if (byQid.containsKey(e.qid)) e],
               celebrateQids: _celebrate,
               topicLabel: topicLabelFor(_questions, (id) => _subjectNames[id]),
-              questionBuilder: (context, entry) => Text(byQid[entry.qid]!.prompt),
+              questionBuilder: (context, entry) => Text(byQid[entry.qid]!.displayPrompt),
               onRetry: _retry,
             ),
     );

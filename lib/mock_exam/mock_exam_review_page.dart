@@ -60,7 +60,7 @@ class _QuestionReview extends StatelessWidget {
           style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.outline),
         ),
         const SizedBox(height: 4),
-        Text(question.prompt, style: theme.textTheme.titleMedium),
+        Text(question.displayPrompt, style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
         _buildResult(context),
       ],
