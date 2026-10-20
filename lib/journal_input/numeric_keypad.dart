@@ -99,8 +99,9 @@ class _KeypadButton extends StatelessWidget {
       child: Semantics(
         label: semanticLabel ?? label,
         button: true,
-        child: SizedBox(
-          height: minSize,
+        // 文字が大きいときはキーも縦に伸びる（固定の高さだと文字の上下が切れる）。
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minSize),
           child: emphasize
               ? FilledButton(onPressed: onTap, child: Text(label))
               : OutlinedButton(

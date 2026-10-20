@@ -57,6 +57,8 @@ void main() {
 
     final debitAmount = tester.getRect(find.text('借方金額'));
     final creditAccount = tester.getRect(find.text('貸方科目'));
-    expect(creditAccount.left - debitAmount.right, greaterThanOrEqualTo(4));
+    // 4列の表なら横に4dp以上あく。縦積み表示なら縦に離れている。
+    final apart = creditAccount.left - debitAmount.right >= 4 || creditAccount.top - debitAmount.bottom >= 4;
+    expect(apart, isTrue);
   });
 }

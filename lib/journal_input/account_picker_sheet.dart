@@ -59,11 +59,18 @@ class _AccountPickerSheetState extends State<_AccountPickerSheet> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              // 入力欄のラベルは1行に収まらないと「…」で切れるため、折り返せる見出しとして外に出す。
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('勘定科目を検索', style: Theme.of(context).textTheme.labelLarge),
+              ),
+              const SizedBox(height: 4),
               TextField(
                 controller: _controller,
                 onChanged: _onQueryChanged,
                 decoration: const InputDecoration(
-                  labelText: '勘定科目を検索',
+                  hintText: '科目名を入力',
+                  hintMaxLines: 2,
                   prefixIcon: Icon(Icons.search),
                 ),
               ),
@@ -118,7 +125,7 @@ class _SectionHeader extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
-          Text(label, style: theme.textTheme.labelLarge),
+          Expanded(child: Text(label, style: theme.textTheme.labelLarge)),
         ],
       ),
     );
