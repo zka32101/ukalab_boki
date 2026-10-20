@@ -85,7 +85,7 @@ void main() {
       expect(errors.drain(), isEmpty, reason: 'テンキー');
       await tester.tap(find.text('選ぶ'));
       await tester.pump(const Duration(milliseconds: 500));
-      await tester.enterText(find.byType(TextField), '貸倒引当金');
+      await tester.enterText(find.byType(TextField), '貸倒引当金繰入');
       await tester.pump(const Duration(milliseconds: 300));
       expect(errors.drain(), isEmpty, reason: '科目ピッカー');
       errors.dispose();

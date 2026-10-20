@@ -111,7 +111,11 @@ void main() {
       await tester.pumpWidget(UncontrolledProviderScope(
         container: container,
         child: const MaterialApp(
-          home: Scaffold(body: Padding(padding: EdgeInsets.all(16), child: JournalInputTable(recentAccountCodes: []))),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Padding(padding: EdgeInsets.all(16), child: JournalInputTable(recentAccountCodes: [])),
+            ),
+          ),
         ),
       ));
       await tester.pump();
