@@ -154,9 +154,15 @@ class ExamDateSettingsPage extends ConsumerWidget {
 
 /// 設定タブの、試験日・更新ログ・履歴書き出しの入口。
 class ExamPrepSettingsSection extends ConsumerWidget {
-  const ExamPrepSettingsSection({super.key, required this.progressStore});
+  const ExamPrepSettingsSection({super.key, required this.progressStore, this.saver, this.now});
 
   final ProgressStore progressStore;
+
+  /// 履歴CSVの渡し方（テスト用の差し替え。null なら core の既定: Web はダウンロード、他は共有シート）。
+  final FileSaver? saver;
+
+  /// 履歴CSVのファイル名の日付に使う現在時刻（テスト用）。
+  final DateTime Function()? now;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -176,7 +182,7 @@ class ExamPrepSettingsSection extends ConsumerWidget {
             final questions = await loadCurrentLevelQuestions();
             if (!c.mounted) return;
             await Navigator.of(c).push(MaterialPageRoute<void>(
-                builder: (_) => HistoryExportView(records: records, questions: questions)));
+                builder: (_) => HistoryExportView(records: records, questions: questions, saver: saver, now: now)));
           },
         ),
       ],

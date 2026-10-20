@@ -40,7 +40,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Serve and check
         env:
-          E2E_SETTINGS: '購入,ながら学習モード'
+          E2E_SETTINGS: '購入,プレミアムでできること,ながら学習モード'
           E2E_EXAM_DATE: ''
           E2E_HOME: 'うかラボ 簿記3級,今日やること,記録,試験に向けて'
           E2E_LEARN: '科目別に練習する,会社を経営する,道具,間違いノート,用語集,章ごとの解説読み物'
