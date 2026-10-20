@@ -3,6 +3,7 @@
 // 期待値は環境変数で渡す（アプリごとに違うため）:
 //   E2E_SETTINGS   設定タブに出るはずの文言（カンマ区切り）
 //   E2E_EXAM_DATE  1 なら、受験日の入力→再読み込みで残る→解除 を確認する
+//   E2E_HOME / E2E_LEARN  ホーム／学ぶタブに出るはずの文言（カンマ区切り。画面外はスクロールして探す）
 //   E2E_READING    「入口の文言|読み物の題名(一部)|最初の節の見出し」。あれば、解説読み物の一覧と詳細を確認する
 // Flutter Web は文字をキャンバスに描くので、アクセシビリティ（semantics）を有効にして文字とボタンを拾う。
 const { chromium } = require('playwright');
@@ -66,6 +67,27 @@ function check(name, ok) {
     await page.screenshot({ path: `${shots}/tab-${t}.png` });
   }
   check('ページエラーなし（各タブ）', errors.length === 0);
+
+  // アプリ固有の文言（ホーム／学ぶ）。画面外の項目は上からスクロールして探す。
+  const expectOn = async (tab, env) => {
+    const items = (process.env[env] || '').split(',').filter(Boolean);
+    if (!items.length) return;
+    await click(tab);
+    for (const s of items) {
+      let ok = await waitText(s, 1500);
+      await page.mouse.move(210, 500);
+      for (let i = 0; !ok && i < 14; i++) {
+        await page.mouse.wheel(0, 500);
+        await page.waitForTimeout(300);
+        ok = await waitText(s, 500);
+      }
+      check(`${tab}に「${s}」`, ok);
+      await page.mouse.wheel(0, -10000);
+      await page.waitForTimeout(300);
+    }
+  };
+  await expectOn('ホーム', 'E2E_HOME');
+  await expectOn('学ぶ', 'E2E_LEARN');
 
   // 設定タブ
   await click('設定');
