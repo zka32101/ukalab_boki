@@ -16,8 +16,8 @@ void main() {
   const debitName = '貸倒引当金繰入';
   const creditName = '減価償却累計額';
 
-  void expectNoEllipsis(WidgetTester tester, String text) {
-    final finder = find.text(text);
+  void expectNoEllipsis(WidgetTester tester, String text, {bool inTile = false}) {
+    final finder = inTile ? find.descendant(of: find.byType(ListTile), matching: find.text(text)) : find.text(text);
     expect(finder, findsWidgets, reason: '「$text」が描画されていない');
     for (final e in finder.evaluate()) {
       expect((e.widget as Text).overflow, isNot(TextOverflow.ellipsis));
@@ -89,7 +89,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(errors.drain(), isEmpty, reason: '科目ピッカー');
       errors.dispose();
-      expectNoEllipsis(tester, '貸倒引当金繰入');
+      expectNoEllipsis(tester, '貸倒引当金繰入', inTile: true);
       expect(find.text('勘定科目を検索'), findsOneWidget);
     });
   }
