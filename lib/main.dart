@@ -20,7 +20,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'company_mode/company_mode_history_store.dart';
 import 'data/ad_unit_ids.dart';
-import 'exam_data/exam_data_cache.dart';
 import 'exam_prep/exam_prep_entry.dart';
 import 'hands_free/hands_free_state.dart';
 import 'company_mode/company_scenario_list_page.dart';
@@ -32,12 +31,12 @@ import 'oshi/boki3_oshi_card.dart';
 import 'oshi/oshi_growth_section.dart';
 import 'oshi/oshi_home_cards.dart';
 import 'widgets/cert_prop_badge.dart';
+import 'widgets/learn_tools_section.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
 import 'purchase/revenuecat_key.dart';
 import 'purchase/weak_drill_card.dart';
 import 'purchase/weak_summary_section.dart';
-import 'reading/reading_list_page.dart';
 import 'review/today_review_section.dart';
 import 'progress/progress_summary_card.dart';
 import 'records/records_page.dart';
@@ -46,7 +45,6 @@ import 'services/no_ads_backend.dart';
 import 'settings/settings_page.dart';
 import 'startup/boot_splash.dart';
 import 'startup/legacy_key_migration.dart';
-import 'term/term_list_page.dart';
 
 /// 演習・模擬試験の解答記録の保存先。端末内保存（アプリ全体で共有）。
 final ProgressStore appProgressStore = SharedPreferencesProgressStore();
@@ -250,7 +248,8 @@ class _HomePage extends StatelessWidget {
         Boki3OshiCard(store: appProgressStore),
         // 推しの一言（無料）。タップで別の一言。
         OshiMessageCard(progressStore: appProgressStore),
-        // 見出しで4つに分ける（既存の専用カードはそのまま置く。折りたたみは要素が少ないため使わない）。
+        // 見出しで3つに分ける（今日やること／記録／試験に向けて）。調べる系の入口は「学ぶ」の「道具」。
+        // 既存の専用カードはそのまま置く。折りたたみは要素が少ないため使わない。
         HomeSection(
           title: '今日やること',
           child: Column(
@@ -263,7 +262,7 @@ class _HomePage extends StatelessWidget {
           ),
         ),
         HomeSection(
-          title: '学習の記録',
+          title: '記録',
           child: Column(
             children: [
               ProgressSummaryCard(store: appProgressStore),
@@ -284,13 +283,6 @@ class _HomePage extends StatelessWidget {
                 child: ExamPrepEntryCard(progressStore: appProgressStore),
               ),
             ],
-          ),
-        ),
-        HomeSection(
-          title: '道具',
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(child: MistakeNoteTile(progressStore: appProgressStore)),
           ),
         ),
         const SizedBox(height: 8),
@@ -370,36 +362,6 @@ class _LearnPage extends StatelessWidget {
         WeakSummarySection(progressStore: appProgressStore),
         WeakDrillCard(progressStore: appProgressStore),
         const SizedBox(height: 24),
-        Text('用語を調べる', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const TermListPage()),
-            ),
-            icon: const Icon(Icons.menu_book_outlined),
-            label: const Align(alignment: Alignment.centerLeft, child: Text('用語集')),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text('読んで学ぶ', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => ReadingListPage(progressStore: appProgressStore)),
-            ),
-            icon: const Icon(Icons.auto_stories_outlined),
-            label: const Align(alignment: Alignment.centerLeft, child: Text('章ごとの解説読み物')),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text('ブックマークとメモ', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        const StudyNotesHomeCards(loadQuestions: loadQuestions),
-        const SizedBox(height: 24),
         Text('実践する', style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
         SizedBox(
@@ -414,6 +376,8 @@ class _LearnPage extends StatelessWidget {
             label: const Align(alignment: Alignment.centerLeft, child: Text('会社を経営する')),
           ),
         ),
+        const SizedBox(height: 24),
+        LearnToolsSection(progressStore: appProgressStore),
       ],
     );
   }
