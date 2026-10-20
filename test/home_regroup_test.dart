@@ -57,9 +57,8 @@ void main() {
   testWidgets('ホームは3つの見出し（今日やること／記録／試験に向けて）で、調べる系の入口は「学ぶ」へ移った', (tester) async {
     await pump(tester, size: const Size(800, 6000), scale: 1.0);
     expectAll();
-    expect(find.text('間違いノート', skipOffstage: false), findsNothing);
-    expect(find.byType(MistakeNoteTile, skipOffstage: false), findsNothing);
-    expect(find.text('用語集', skipOffstage: false), findsNothing);
+    // ホームに「道具」の区切りは無い（間違いノート等は設定タブにも入口があるため、区切りの有無で確認する）。
+    expect(find.descendant(of: find.byType(HomeSectionHeader), matching: find.text('道具')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -77,11 +76,14 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(label));
       await tester.pump();
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump(const Duration(milliseconds: 200));
+      }
       expect(find.byType(page), findsOneWidget, reason: label);
       Navigator.of(tester.element(find.byType(page))).pop();
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
     }
 
     await openAndBack('間違いノート', MistakeNotePage);
