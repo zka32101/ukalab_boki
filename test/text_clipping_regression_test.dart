@@ -97,7 +97,7 @@ void main() {
   }
 
   for (final (width, scale) in [(320.0, 1.0), (360.0, 2.0), (280.0, 3.0)]) {
-    testWidgets('仕訳の金額セルは幅${width.toInt()}・文字$scale倍でも極端に縮まない（足りなければ横スクロール）', (tester) async {
+    testWidgets('仕訳の金額セルは幅${width.toInt()}・文字$scale倍でも縮めず全桁出る', (tester) async {
       applyScreen(tester, ScreenCase(width, 800, scale));
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -116,11 +116,12 @@ void main() {
       ));
       await tester.pump();
 
-      final fitted = find.ancestor(of: find.text('12345678'), matching: find.byType(FittedBox)).evaluate().first;
-      final box = fitted.renderObject! as RenderBox;
-      final child = (fitted.renderObject! as RenderFittedBox).child!;
-      final shrink = box.size.width / child.size.width;
-      expect(shrink, greaterThanOrEqualTo(0.58), reason: '金額が ${(shrink * 100).round()}% まで縮んでいる');
+      // 金額は縮めず（FittedBoxなし）、全桁が1行で描画される。
+      expect(find.ancestor(of: find.text('12345678'), matching: find.byType(FittedBox)), findsNothing);
+      for (final e in find.text('12345678').evaluate()) {
+        final p = e.renderObject! as RenderParagraph;
+        expect(p.size.width, greaterThanOrEqualTo(p.getMaxIntrinsicWidth(double.infinity) - 0.5));
+      }
       expect(tester.takeException(), isNull);
     });
   }

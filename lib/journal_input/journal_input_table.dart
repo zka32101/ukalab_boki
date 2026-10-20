@@ -31,62 +31,71 @@ class JournalInputTable extends ConsumerWidget {
   /// 問題では [boki3AccountsLegacy] を渡す（手形科目を選べるようにするため）。
   final List<AccountDef> accountPool;
 
-  static const double _removeColumnWidth = 32;
+  static const double _removeColumnWidth = 48; // 削除ボタンのタップ領域（48dp）
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(journalInputProvider);
     final controller = ref.read(journalInputProvider.notifier);
 
-    final table = Column(
-      children: [
-        const _TableHeaderRow(),
-        for (var i = 0; i < state.rows.length; i++)
-          _JournalRow(
-            rowIndex: i,
-            row: state.rows[i],
-            selectedCell: state.selectedCell,
-            cellDiffs: cellDiffs,
-            readOnly: readOnly,
-            onSelectCell: (cell) => _handleSelect(context, ref, cell),
-            onRemove: state.rows.length > 1 && !readOnly ? () => controller.removeRow(i) : null,
-          ),
-        if (!readOnly && state.rows.length < JournalInputState.maxRows)
-          Align(
+    Widget? addButton() => !readOnly && state.rows.length < JournalInputState.maxRows
+        ? Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: controller.addRow,
               icon: const Icon(Icons.add),
               label: const Text('行を追加'),
             ),
-          ),
-      ],
-    );
+          )
+        : null;
 
-    // 幅が足りないとき（狭い端末・大きい文字）は、金額を豆粒のように縮めて読めなくするより、
-    // 表に必要な幅を確保して横にスクロールできるようにする。
+    // 幅が足りないとき（狭い端末・大きい文字）は、金額を縮めたり科目名を切ったりせず、
+    // 1つの仕訳を「借方 → 貸方」の縦積み（各欄が全幅）で見せる。
     return LayoutBuilder(
       builder: (context, constraints) {
         final minWidth = _minTableWidth(context, withMark: cellDiffs != null);
-        if (!constraints.hasBoundedWidth || constraints.maxWidth >= minWidth) return table;
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(width: minWidth, child: table),
+        final stacked = constraints.hasBoundedWidth && constraints.maxWidth < minWidth;
+        final add = addButton();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!stacked) const _TableHeaderRow(),
+            for (var i = 0; i < state.rows.length; i++)
+              if (stacked)
+                _StackedJournalRow(
+                  rowIndex: i,
+                  row: state.rows[i],
+                  selectedCell: state.selectedCell,
+                  cellDiffs: cellDiffs,
+                  onSelectCell: (cell) => _handleSelect(context, ref, cell),
+                  onRemove: state.rows.length > 1 && !readOnly ? () => controller.removeRow(i) : null,
+                )
+              else
+                _JournalRow(
+                  rowIndex: i,
+                  row: state.rows[i],
+                  selectedCell: state.selectedCell,
+                  cellDiffs: cellDiffs,
+                  readOnly: readOnly,
+                  onSelectCell: (cell) => _handleSelect(context, ref, cell),
+                  onRemove: state.rows.length > 1 && !readOnly ? () => controller.removeRow(i) : null,
+                ),
+            if (add != null) add,
+          ],
         );
       },
     );
   }
 
-  /// 金額セルの文字を最大でも [_maxShrink] 倍までしか縮めずに済む表の幅。
+  /// 金額を縮めずに全桁そのまま入れられる4列表の幅。これより狭いときは縦積みにする。
   /// 実際の文字の幅（フォント・文字倍率込み）から求めるので、文字が大きいほど広くなる。
   static double _minTableWidth(BuildContext context, {required bool withMark}) {
     const maxDigits = 8; // 金額の想定最大桁数
-    const maxShrink = 0.6;
-    const cellChrome = 4 + 16; // セルの外側の余白＋内側の左右余白
+    const cellChrome = 4 + 16 + 2; // セルの外側の余白＋内側の左右余白＋ゆとり
     const markWidth = 20.0; // 答え合わせ後の ✓／✕ アイコン分
     const accountSample = '勘定科目'; // 科目名は折り返せるので、せめて4文字分
     final mark = withMark ? markWidth : 0.0;
-    final amountCell = measureTextWidth(context, '8' * maxDigits) * maxShrink + cellChrome + mark;
+    final amountCell = measureTextWidth(context, '8' * maxDigits) + cellChrome + mark;
     final accountCell = measureTextWidth(context, accountSample) + cellChrome + mark;
     // 列の比率は 科目4：金額3：科目4：金額3、右端に削除ボタン分の幅。
     final byAmount = amountCell * 14 / 3;
@@ -125,7 +134,7 @@ class _TableHeaderRow extends StatelessWidget {
         Expanded(flex: 3, child: label('借方金額', alignEnd: true)),
         Expanded(flex: 4, child: label('貸方科目')),
         Expanded(flex: 3, child: label('貸方金額', alignEnd: true)),
-        const SizedBox(width: 32),
+        const SizedBox(width: JournalInputTable._removeColumnWidth),
       ],
     );
   }
@@ -152,7 +161,10 @@ class _JournalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    // 科目名が折り返して高さが変わっても、同じ行の4つの枠は同じ高さにそろえる。
+    return IntrinsicHeight(
+      child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           flex: 4,
@@ -197,16 +209,116 @@ class _JournalRow extends StatelessWidget {
           ),
         ),
         SizedBox(
-          width: 32,
+          width: JournalInputTable._removeColumnWidth,
           child: onRemove != null
               ? IconButton(
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: const Icon(Icons.close, size: 20),
                   tooltip: 'この行を削除',
                   onPressed: onRemove,
                 )
               : null,
         ),
       ],
+    ),
+    );
+  }
+}
+
+/// 狭い画面・大きい文字用の縦積み表示。1つの仕訳を「借方」「貸方」の2ブロックに分け、
+/// 科目欄・金額欄をそれぞれ全幅で見せる（科目名は折り返し、金額は全桁読める）。
+class _StackedJournalRow extends StatelessWidget {
+  const _StackedJournalRow({
+    required this.rowIndex,
+    required this.row,
+    required this.selectedCell,
+    required this.cellDiffs,
+    required this.onSelectCell,
+    required this.onRemove,
+  });
+
+  final int rowIndex;
+  final JournalLineInputRow row;
+  final JournalCellRef? selectedCell;
+  final Map<JournalCellRef, JournalLineDiffKind>? cellDiffs;
+  final ValueChanged<JournalCellRef> onSelectCell;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final captionStyle = theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+
+    Widget field(JournalSide side, JournalCellField kind, String caption, String text) {
+      final ref = JournalCellRef(rowIndex: rowIndex, side: side, field: kind);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 4),
+            child: Text(caption, style: captionStyle),
+          ),
+          _Cell(
+            cell: ref,
+            text: text,
+            alignEnd: kind == JournalCellField.amount,
+            selected: selectedCell,
+            diffKind: cellDiffs?[ref],
+            onTap: onSelectCell,
+            minHeight: 48,
+          ),
+        ],
+      );
+    }
+
+    Widget block(String title, IconData icon, List<Widget> children) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Row(
+                children: [
+                  Icon(icon, size: 18, color: theme.colorScheme.primary),
+                  const SizedBox(width: 4),
+                  Text(title, style: theme.textTheme.titleSmall),
+                ],
+              ),
+            ),
+            ...children,
+          ],
+        );
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          block('借方', Icons.arrow_circle_down_outlined, [
+            field(JournalSide.debit, JournalCellField.account, '借方科目',
+                row.debitAccount != null ? accountNameOf(row.debitAccount!) : ''),
+            field(JournalSide.debit, JournalCellField.amount, '借方金額', row.debitAmount?.toString() ?? ''),
+          ]),
+          const Divider(height: 16),
+          block('貸方', Icons.arrow_circle_up_outlined, [
+            field(JournalSide.credit, JournalCellField.account, '貸方科目',
+                row.creditAccount != null ? accountNameOf(row.creditAccount!) : ''),
+            field(JournalSide.credit, JournalCellField.amount, '貸方金額', row.creditAmount?.toString() ?? ''),
+          ]),
+          if (onRemove != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onRemove,
+                icon: const Icon(Icons.close, size: 18),
+                label: const Text('この行を削除'),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -219,8 +331,10 @@ class _Cell extends StatelessWidget {
     required this.onTap,
     this.diffKind,
     this.alignEnd = false,
+    this.minHeight = 64,
   });
 
+  final double minHeight;
   final JournalCellRef cell;
   final String text;
   final JournalCellRef? selected;
@@ -242,12 +356,14 @@ class _Cell extends StatelessWidget {
         child: Container(
           // 科目名が2行に折り返しても行の高さが変わらないよう、2行分の高さを最小にする
           // (空欄と入力済みで高さが違うと、次の欄の位置がずれて入力しづらい)。
-          constraints: const BoxConstraints(minHeight: 64),
+          constraints: BoxConstraints(minHeight: minHeight),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.12) : null,
+            // 選択中は色だけでなく枠の太さでも区別する。
             border: Border.all(
               color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+              width: isSelected ? 2.5 : 1,
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -260,17 +376,14 @@ class _Cell extends StatelessWidget {
               ],
               Expanded(
                 child: alignEnd
-                    // 金額は途中で切らず、セルの幅に合わせて縮小して全桁を見せる。
-                    ? FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Text(text, textAlign: TextAlign.right),
+                    // 金額は縮めず、途切れもさせない。枠に収まらないほど大きいときだけ横にスクロールして全桁を読める。
+                    ? SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        reverse: true,
+                        child: Text(text, textAlign: TextAlign.right, softWrap: false),
                       )
-                    : Text(
-                        text,
-                        textAlign: TextAlign.left,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    // 科目名は省略せず、枠の中で折り返して全文を見せる。
+                    : Text(text, textAlign: TextAlign.left),
               ),
             ],
           ),
