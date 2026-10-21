@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ukalab_core/learning.dart';
 import 'package:ukalab_core/ukalab_core.dart';
+import 'package:ukalab_core/learning.dart';
 
 import '../exam_data/exam_data_cache.dart';
 import '../term/term_list_page.dart';

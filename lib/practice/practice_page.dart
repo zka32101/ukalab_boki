@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel;
 import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
-import 'package:ukalab_core/learning.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
+import 'package:ukalab_core/learning.dart';
 
 import '../common/wrapping_app_bar.dart';
 import '../evidence_input/evidence_question_view.dart';

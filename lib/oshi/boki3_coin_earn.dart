@@ -1,6 +1,6 @@
-import 'package:ukalab_core/learning.dart' show loadCurrentStreak;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ui.dart';
+import 'package:ukalab_core/learning.dart' show loadCurrentStreak;
 
 /// 連続学習でコインが付く日数（core の CoinRules: 7日=30 / 30日=100 / 100日=300）。
 const boki3StreakCoinMilestones = [7, 30, 100];

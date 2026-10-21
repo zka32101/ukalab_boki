@@ -1,8 +1,8 @@
-import 'package:ukalab_core/learning.dart' show loadCurrentStreak;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
+import 'package:ukalab_core/learning.dart' show loadCurrentStreak;
 
 import '../exam_data/exam_data_cache.dart';
 import '../exam_prep/exam_prep_data.dart' show examDateProvider;

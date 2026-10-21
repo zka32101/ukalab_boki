@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
-import 'package:ukalab_core/learning.dart';
 import 'package:ukalab_core/ukalab_core.dart';
+import 'package:ukalab_core/learning.dart';
 
 import '../common/wrapping_app_bar.dart';
 import '../exam_data/current_level.dart';
