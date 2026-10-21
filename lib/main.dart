@@ -26,6 +26,7 @@ import 'company_mode/company_scenario_list_page.dart';
 import 'mistake_note/mistake_note_page.dart';
 import 'nagara/nagara_session_page.dart';
 import 'mock_exam/mock_exam_page.dart';
+import 'oshi/boki3_character_overrides.dart';
 import 'oshi/boki3_coin_overrides.dart';
 import 'oshi/boki3_oshi_card.dart';
 import 'oshi/oshi_growth_section.dart';
@@ -134,6 +135,7 @@ void main() async {
         ...reminder,
         ...achievementUnlock,
         ...coinOutfit,
+        ...boki3CharacterOverrides(),
         dailyGoalAchievementsOverride,
       ],
       child: const UkalabBoki3App(),
