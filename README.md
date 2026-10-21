@@ -687,3 +687,16 @@ Chromiumをヘッドレスモードで動かし、スクリーンショットで
   93→96問・84→87問に更新した（第1問の仕訳が3問増えたため）。
 - choice型の正解位置は 0:9・1:10・2:9・3:10 で均等。数値は生成スクリプトで検算済み（仕訳の貸借一致、
   株式売却の損益、繰越試算表の貸借一致）。
+
+## Firebase 設定ファイルの注入（相互紹介 / CI）
+
+`google-services.json` は秘密扱いでコミットしない（`.gitignore` 済み）。
+`android/app/google-services.json` が存在するときだけ google-services プラグインが適用され、無い環境（PR の CI・テスト・ローカル）では Firebase 未設定のままビルドできる。
+
+リリースビルド（`.github/workflows/release-android.yml`、手動実行）で使う Secret:
+
+- `GOOGLE_SERVICES_JSON_BASE64`: `google-services.json` を base64 した文字列
+
+登録手順: Firebase コンソールから `google-services.json` をダウンロードし、`base64 -w0 google-services.json`（macOS は `base64 -i google-services.json`）の出力を、リポジトリの Settings > Secrets and variables > Actions に `GOOGLE_SERVICES_JSON_BASE64` として登録する。Secret が空ならステップはスキップされる。
+
+iOS の `GoogleService-Info.plist` の注入は未対応（現状 `ios/` ディレクトリが無い）。
