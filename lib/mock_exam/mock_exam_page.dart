@@ -4,6 +4,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../oshi/boki3_coin_earn.dart';
+import 'package:ukalab_core/learning.dart';
 import 'package:ukalab_core/ui.dart' show MockExamAnalysisCard;
 import 'package:ukalab_core/ukalab_core.dart';
 

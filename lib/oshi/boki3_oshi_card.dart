@@ -1,10 +1,11 @@
-import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/learning.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../exam_data/exam_data_cache.dart';
 import '../progress/progress_revision.dart';
+import '../purchase/purchase_guide_page.dart';
 
 /// 解答記録から推しの成長段階を決める。網羅率＝解いた問題の種類÷全問題数、
 /// 正答率＝正解数÷回答数。範囲外の問題の記録は数えない。
@@ -70,6 +71,14 @@ class _Boki3OshiCardState extends State<Boki3OshiCard> {
     );
   }
 
+  /// ロック中の資格専用キャラ（ソロ）のプレビューの「プレミアムを見る」から呼ばれる。
+  /// 推しの選択画面を閉じてから、購入欄を出す画面を開く（下部タブは外から切り替えられない）。
+  void _openPurchase() {
+    final navigator = Navigator.of(context);
+    navigator.popUntil((route) => route.isFirst);
+    navigator.push(MaterialPageRoute<void>(builder: (_) => const PurchaseGuidePage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_OshiData>(
@@ -81,6 +90,7 @@ class _Boki3OshiCardState extends State<Boki3OshiCard> {
           appId: 'boki3',
           stage: d?.stage ?? MascotStage.lv1,
           streakDays: d?.streakDays ?? 0,
+          onLockedTap: _openPurchase,
         );
       },
     );

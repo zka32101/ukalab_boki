@@ -35,7 +35,7 @@ import 'widgets/cert_prop_badge.dart';
 import 'widgets/learn_tools_section.dart';
 import 'practice/practice_page.dart';
 import 'progress/progress_store.dart';
-import 'purchase/premium_benefits_section.dart';
+import 'purchase/purchase_guide_page.dart';
 import 'purchase/revenuecat_key.dart';
 import 'purchase/weak_drill_card.dart';
 import 'purchase/weak_summary_section.dart';
@@ -177,16 +177,7 @@ class UkalabBoki3App extends ConsumerWidget {
             ),
             SettingsPage(
               progressStore: appProgressStore,
-              purchaseSection: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Builder(
-                    builder: (c) => PurchaseSection(titleStyle: Theme.of(c).textTheme.titleLarge),
-                  ),
-                  const SizedBox(height: 12),
-                  const PremiumBenefitsSection(),
-                ],
-              ),
+              purchaseSection: const PurchaseBlock(),
               dataSection: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

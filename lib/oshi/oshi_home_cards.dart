@@ -1,4 +1,4 @@
-import 'package:app_common_kit/app_common_kit.dart' show loadCurrentStreak;
+import 'package:ukalab_core/learning.dart' show loadCurrentStreak;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ui.dart';
