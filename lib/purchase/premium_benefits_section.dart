@@ -12,6 +12,7 @@ const List<PremiumFeature> kBoki3PremiumFeatures = [
   PremiumFeature.tenMinutePlan,
   PremiumFeature.historyExport,
   PremiumFeature.readingReadAloud,
+  PremiumFeature.qualificationCharacter,
 ];
 
 /// 設定の購入欄の下に出す、プレミアムでできることの一覧（core の [PremiumBenefitsCard]）。
