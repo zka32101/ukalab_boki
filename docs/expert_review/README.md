@@ -6,3 +6,4 @@
 - 一覧: `review_priority.csv`（UTF-8 BOM付き。勘定科目は内部IDで表示。末尾3列は空欄）
 - 依頼文・観点・反映方法: ukalab_core の `docs/expert_review_requests.md` §5 と `docs/expert_review_session_handover.md`
 - 反映は別PRで。記録は確認日（年月）と確認者区分のみ。氏名等は記録しない。
+- 決算（q3_kessan）追加 30 問（AI下書き）の確認用: `kessan_additions_checklist.md`
