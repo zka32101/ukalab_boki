@@ -1,7 +1,7 @@
 name: ukalab_boki3
 description: "うかラボ 簿記3級 — 日商簿記検定3級の学習アプリ（非公式）"
 publish_to: 'none'
-version: 0.1.3+6
+version: 0.1.4+7
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
