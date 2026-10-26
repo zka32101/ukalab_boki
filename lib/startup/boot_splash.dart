@@ -1,5 +1,5 @@
-import 'package:app_common_kit/app_common_kit.dart' show StartupSplash;
 import 'package:flutter/material.dart';
+import 'package:ukalab_core/ui.dart' show UkalabStartupSplash;
 
 /// アイコン背景の茶色。Android のネイティブ起動画面
 /// (`res/values/colors.xml` の `launch_background_color`) と同じ値にする。
@@ -17,8 +17,8 @@ class BootSplashApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: StartupSplash(
-        appIconAsset: kBootSplashIconAsset,
+      home: UkalabStartupSplash(
+        iconAsset: kBootSplashIconAsset,
         backgroundColor: kBootSplashBackground,
       ),
     );
