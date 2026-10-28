@@ -6,7 +6,7 @@ import 'package:ukalab_boki3/journal_input/account_catalog.dart';
 
 /// 勘定科目カバレッジ（docs/account_title_coverage.md）の機械検証。
 /// 新区分表の全科目が問題データの2問以上に登場すること、および
-/// カバレッジ補完で追加した ai-draft 問題の規則を確認する。
+/// カバレッジ補完で追加した問題（AI下書き由来・専門家確認済み）の規則を確認する。
 const _metaKeys = {
   'qid',
   'examId',
@@ -97,7 +97,7 @@ void main() {
     expect(lacking, isEmpty, reason: '登場が2問未満の科目: $lacking');
   });
 
-  test('カバレッジ補完で追加した18問は ai-draft 表記規則と禁止表現の規則を満たす', () {
+  test('カバレッジ補完で追加した18問は専門家確認済みの表記規則（ai-draft タグなし）と禁止表現の規則を満たす', () {
     final questions = _loadQuestions();
     final byId = {for (final q in questions) q['qid'] as String: q};
     final addedIds = [
@@ -108,8 +108,8 @@ void main() {
     for (final id in addedIds) {
       final q = byId[id];
       expect(q, isNotNull, reason: '$id が存在しない');
-      expect(q!['tags'], contains('ai-draft'), reason: id);
-      expect(q['sourceRef'] as String, contains('AI下書き・要確認'), reason: id);
+      expect(q!['tags'] ?? const [], isNot(contains('ai-draft')), reason: id);
+      expect(q['sourceRef'] as String, contains('AI下書き・専門家確認済み'), reason: id);
       final buf = StringBuffer();
       _collectText(q, buf);
       buf.write(q['sourceRef']);
