@@ -713,3 +713,11 @@ Chromiumをヘッドレスモードで動かし、スクリーンショットで
 登録手順: Firebase コンソールから `google-services.json` をダウンロードし、`base64 -w0 google-services.json`（macOS は `base64 -i google-services.json`）の出力を、リポジトリの Settings > Secrets and variables > Actions に `GOOGLE_SERVICES_JSON_BASE64` として登録する。Secret が空ならステップはスキップされる。
 
 iOS の `GoogleService-Info.plist` の注入は未対応（現状 `ios/` ディレクトリが無い）。
+
+## 専門家確認済みに伴う ai-draft タグの削除（2026-10-28）
+
+- 専門家確認の結果 OK となったため、`ai-draft` タグを問題 103 件（`boki3.questions.jsonl`）・用語 30 件（`boki3.terms.jsonl`）から削除した（計 133 行。他タグは元から無し。tags が空になるためキーごと削除し、既存の無タグ問題の表記に合わせた）
+- sourceRef の「AI下書き・要確認」を「AI下書き・専門家確認済み」に更新（AI下書き由来である旨は残す）。`source: original` は維持
+- 変更行の `contentVer` は末尾の番号を 1 つ繰り上げ（例: `2026.10.0`→`2026.10.1`）
+- 範囲未確認と報告されていた `boki3-j-0178`・`boki3-c-0058` も、ユーザーの「全件」指示により対象に含めた
+- 問題文・選択肢・正誤・解説は変更していない
