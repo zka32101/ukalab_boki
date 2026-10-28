@@ -61,6 +61,8 @@ const List<AccountDef> boki3Accounts = [
   ),
   AccountDef(code: 'guarantee_deposit', name: '差入保証金', group: AccountGroup.asset),
   AccountDef(code: 'merchandise_inventory', name: '繰越商品', group: AccountGroup.asset),
+  // 販売のつど売上原価勘定に振り替える方法で使う資産勘定（2027年度版 勘定科目表 3級A欄）。
+  AccountDef(code: 'merchandise', name: '商品', group: AccountGroup.asset),
   AccountDef(code: 'securities', name: '有価証券', group: AccountGroup.asset),
   AccountDef(code: 'stored_goods', name: '貯蔵品', group: AccountGroup.asset),
   AccountDef(code: 'building', name: '建物', group: AccountGroup.asset),
@@ -144,6 +146,7 @@ const List<AccountDef> boki3Accounts = [
 
   // 費用
   AccountDef(code: 'purchases', name: '仕入', group: AccountGroup.expense),
+  AccountDef(code: 'cost_of_goods_sold', name: '売上原価', group: AccountGroup.expense),
   AccountDef(code: 'shipping_expense', name: '発送費', group: AccountGroup.expense),
   AccountDef(code: 'salary', name: '給料', group: AccountGroup.expense),
   AccountDef(
@@ -177,6 +180,12 @@ const List<AccountDef> boki3Accounts = [
   AccountDef(
     code: 'loss_on_disposal_of_fixed_assets',
     name: '固定資産売却損',
+    group: AccountGroup.expense,
+  ),
+  // 許容科目: 固定資産廃棄損・備品除却損・建物除却損（問題文は固定資産除却損で統一する）。
+  AccountDef(
+    code: 'loss_on_retirement_of_fixed_assets',
+    name: '固定資産除却損',
     group: AccountGroup.expense,
   ),
   AccountDef(code: 'tax_and_dues', name: '租税公課', group: AccountGroup.expense),
