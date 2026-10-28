@@ -7,9 +7,9 @@ import 'package:ukalab_boki3/progress/progress_store.dart';
 import 'test_support.dart';
 
 /// 旧区分表専用の手形問題（6問）が、[PracticePage] の出題プールから
-/// 2027年4月以降は除外されることをUIレベルで確認する（旧区分表専用の6問を除外。新範囲追加後は111問）。
+/// 2027年4月以降は除外されることをUIレベルで確認する（旧区分表専用の6問を除外。新範囲追加・現金過不足の共通化後は114問）。
 void main() {
-  testWidgets('2027年4月以降は旧区分表専用の手形問題が出題プールから除外される（旧区分表専用の6問を除外。新範囲追加後は111問）', (tester) async {
+  testWidgets('2027年4月以降は旧区分表専用の手形問題が出題プールから除外される（旧区分表専用の6問を除外。新範囲追加・現金過不足の共通化後は114問）', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: studyNotesTestOverrides(),
@@ -27,6 +27,6 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('/ 111問目'), findsOneWidget);
+    expect(find.textContaining('/ 114問目'), findsOneWidget);
   });
 }

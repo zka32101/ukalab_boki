@@ -3,7 +3,7 @@ import 'package:ukalab_boki3/journal_input/account_catalog.dart';
 
 /// 旧区分表（2022年度版、〜2027年3月実施分）向けの勘定科目一覧の検証。
 void main() {
-  test('boki3AccountsLegacy は新区分表の科目に受取手形・支払手形・現金過不足・損益を加えたもの', () {
+  test('boki3AccountsLegacy は新区分表の科目に受取手形・支払手形・損益を加えたもの', () {
     final legacyCodes = boki3AccountsLegacy.map((a) => a.code).toSet();
     final newCodes = boki3Accounts.map((a) => a.code).toSet();
 
@@ -11,9 +11,9 @@ void main() {
     expect(legacyCodes.difference(newCodes), {
       'notes_receivable',
       'notes_payable',
-      'cash_over_short',
       'income_summary',
     });
+    expect(newCodes, contains('cash_over_short'));
   });
 
   test('新区分表の科目コードに重複がない', () {
