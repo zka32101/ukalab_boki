@@ -37,6 +37,8 @@ const List<AccountDef> boki3Accounts = [
   // 資産
   AccountDef(code: 'cash', name: '現金', group: AccountGroup.asset),
   AccountDef(code: 'petty_cash', name: '小口現金', group: AccountGroup.asset),
+  // 2027年度版 勘定科目表（3級）に記載あり。区分表（第二1ウ）でも3級に残る。
+  AccountDef(code: 'cash_over_short', name: '現金過不足', group: AccountGroup.asset),
   AccountDef(code: 'checking_deposit', name: '当座預金', group: AccountGroup.asset),
   AccountDef(code: 'ordinary_deposit', name: '普通預金', group: AccountGroup.asset),
   AccountDef(code: 'time_deposit', name: '定期預金', group: AccountGroup.asset),
@@ -207,12 +209,12 @@ const List<AccountDef> boki3Accounts = [
 /// - `notes_receivable`・`notes_payable`: 受取手形・支払手形。3級の出題範囲は振出・受入・支払
 ///   のみで、裏書・割引は2級以上の範囲（2026-10-09、ユーザー確認済み）。紙媒体の手形が廃止される
 ///   2027年4月以降は出題されなくなるため [boki3Accounts] からは除外している。
-/// - `cash_over_short`・`income_summary`: 現金過不足・損益。`docs/accounts_v1_official.md` の
+/// - `income_summary`: 損益。`docs/accounts_v1_official.md` の
 ///   一次資料（商業簿記標準・許容勘定科目表）の3級欄に明記されている。
+///   （現金過不足 `cash_over_short` は2027年度版 勘定科目表の3級に残るため [boki3Accounts] 側へ移した）
 const List<AccountDef> boki3LegacyOnlyAccounts = [
   AccountDef(code: 'notes_receivable', name: '受取手形', group: AccountGroup.asset),
   AccountDef(code: 'notes_payable', name: '支払手形', group: AccountGroup.liability),
-  AccountDef(code: 'cash_over_short', name: '現金過不足', group: AccountGroup.asset),
   // 決算振替（収益・費用を集約する仮勘定）。5要素のどれにも厳密には当てはまらないが、
   // 最終的に繰越利益剰余金（純資産）に振り替わる勘定のため純資産グループに置く。
   AccountDef(code: 'income_summary', name: '損益', group: AccountGroup.equity),
