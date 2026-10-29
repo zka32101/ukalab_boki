@@ -1,0 +1,29 @@
+name: proto-web-preview (temporary)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [proto/reading-explanation]
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/proto/reading-explanation'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: 'stable'
+      - name: Enable proto flag (runner only, not committed)
+        run: |
+          sed -i 's/^const bool kReadingExplanationProtoEnabled = false;/const bool kReadingExplanationProtoEnabled = true;/' lib/exam_data/feature_flags.dart
+          grep -n "kReadingExplanationProtoEnabled =" lib/exam_data/feature_flags.dart
+          grep -q "kReadingExplanationProtoEnabled = true;" lib/exam_data/feature_flags.dart
+      - run: flutter pub get
+      - run: flutter build web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: proto-web
+          path: build/web
+          retention-days: 1
