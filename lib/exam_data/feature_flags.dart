@@ -27,3 +27,14 @@ List<Question> filterByNewQuestionTypes(
   if (enabled) return questions;
   return questions.where((q) => !isNewQuestionType(q)).toList();
 }
+
+/// 【試作】読み物の表現拡張（表・手順）と、誤答→読み物導線・解説カードを有効にするか。
+/// ukalab_core の main（ブランチ参照）の機能を使う。マージ前の試作用。
+///
+/// **false（既定）**: 試作の読み物（`boki3.readings_proto.jsonl`）を読み込まず、
+/// 読み物画面・解答後のフィードバックは従来のまま（既存ユーザーの表示は変わらない）。
+/// **true**: 試作の読み物1本を一覧に加え、`ReadingSectionContent` での表・手順の描画、
+/// 誤答時の「読み物でおさらい」、読み物末尾の関連問題リンク、解説カードを出す。
+///
+/// コンパイル時定数。テストでは各画面の引数で切り替える。
+const bool kReadingExplanationProtoEnabled = false;

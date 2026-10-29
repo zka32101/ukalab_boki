@@ -7,6 +7,7 @@ import 'package:ukalab_core/ukalab_core.dart';
 
 import '../common/wrapping_app_bar.dart';
 import '../exam_data/exam_data_cache.dart';
+import '../exam_data/feature_flags.dart';
 import '../hands_free/hands_free_state.dart';
 import '../practice/practice_page.dart';
 
@@ -82,10 +83,19 @@ class _ReadingListPageState extends State<ReadingListPage> {
 /// 解説読み物1本の詳細。節を順に表示し、末尾に関連用語・関連問題を出す。
 /// 本文中の用語はタップして用語カードを開ける。読み上げはプレミアム機能。
 class ReadingDetailPage extends ConsumerStatefulWidget {
-  const ReadingDetailPage({super.key, required this.reading, required this.progressStore});
+  const ReadingDetailPage({
+    super.key,
+    required this.reading,
+    required this.progressStore,
+    this.protoEnabled = kReadingExplanationProtoEnabled,
+  });
 
   final ChapterReading reading;
   final ProgressStore progressStore;
+
+  /// 【試作】表・手順の描画（`ReadingSectionContent`）、関連問題リンク、解説カードを使う。
+  /// 既定は [kReadingExplanationProtoEnabled]（false のときは従来の表示）。
+  final bool protoEnabled;
 
   @override
   ConsumerState<ReadingDetailPage> createState() => _ReadingDetailPageState();
@@ -123,6 +133,28 @@ class _ReadingDetailPageState extends ConsumerState<ReadingDetailPage> {
           final (terms, questions) = snapshot.data!;
           Term? termById(String id) => terms.where((t) => t.termId == id).firstOrNull;
           Question? questionById(String id) => questions.where((q) => q.qid == id).firstOrNull;
+          void openQuestion(String qid) {
+            if (questionById(qid) == null) return;
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => PracticePage(
+                  progressStore: widget.progressStore,
+                  restrictToQids: {qid},
+                  title: '関連問題',
+                ),
+              ),
+            );
+          }
+
+          if (widget.protoEnabled) {
+            return ReadingProtoBody(
+              reading: r,
+              terms: terms,
+              questions: questions,
+              onOpenQuestion: openQuestion,
+              onOpenTerm: (t) => openTermCard(context, terms, t),
+            );
+          }
           return ChapterReadingWidget(
             title: r.title,
             sections: [for (final s in r.sections) ReadingSectionView(heading: s.heading, body: s.body)],
@@ -155,6 +187,89 @@ class _ReadingDetailPageState extends ConsumerState<ReadingDetailPage> {
                 : () => appSpeaker.speakNow(r.sections.map((s) => '${s.heading}。${s.body}').join('')),
           );
         },
+      ),
+    );
+  }
+}
+
+/// 【試作】表・手順を含む読み物の本文。`ReadingSectionContent` で節を描画し、
+/// 関連用語・例題の解説（`ExplanationCard.fromPlain`）・関連問題リンクを末尾に出す。
+/// [kReadingExplanationProtoEnabled] が true のときだけ [ReadingDetailPage] から使われる。
+class ReadingProtoBody extends StatelessWidget {
+  const ReadingProtoBody({
+    super.key,
+    required this.reading,
+    required this.terms,
+    required this.questions,
+    required this.onOpenQuestion,
+    required this.onOpenTerm,
+  });
+
+  final ChapterReading reading;
+  final List<Term> terms;
+  final List<Question> questions;
+  final ValueChanged<String> onOpenQuestion;
+  final ValueChanged<Term> onOpenTerm;
+
+  String _shorten(String s) => s.length <= 40 ? s : '${s.substring(0, 40)}…';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final byQid = {for (final q in questions) q.qid: q};
+    Question? example;
+    for (final id in reading.relatedQuestionIds) {
+      final q = byQid[id];
+      if (q != null && q.type == QuestionType.journal) {
+        example = q;
+        break;
+      }
+    }
+    final relatedTerms = [
+      for (final id in reading.relatedTermIds)
+        for (final t in terms)
+          if (t.termId == id) t,
+    ];
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + MediaQuery.of(context).padding.bottom),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(reading.title, style: theme.textTheme.titleLarge),
+          for (final s in reading.sections) ...[
+            const SizedBox(height: 20),
+            ReadingSectionContent(section: s),
+          ],
+          if (relatedTerms.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text('関連用語', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final t in relatedTerms) ActionChip(label: Text(t.term), onPressed: () => onOpenTerm(t)),
+              ],
+            ),
+          ],
+          if (example != null) ...[
+            const SizedBox(height: 20),
+            Text('例題の解説', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(example.prompt, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 8),
+            ExplanationCard.fromPlain(example.explanation),
+          ],
+          const SizedBox(height: 20),
+          ReadingQuestionLinks.forReading(
+            reading: reading,
+            onOpenQuestion: onOpenQuestion,
+            labels: {
+              for (final id in reading.relatedQuestionIds)
+                if (byQid[id] case final q?) id: _shorten(q.displayPrompt),
+            },
+          ),
+        ],
       ),
     );
   }
