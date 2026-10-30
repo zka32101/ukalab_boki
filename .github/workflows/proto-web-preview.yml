@@ -15,11 +15,6 @@ jobs:
         with:
           flutter-version: '3.35.5'
           channel: 'stable'
-      - name: Enable proto flag (runner only, not committed)
-        run: |
-          sed -i 's/^const bool kReadingExplanationProtoEnabled = false;/const bool kReadingExplanationProtoEnabled = true;/' lib/exam_data/feature_flags.dart
-          grep -n "kReadingExplanationProtoEnabled =" lib/exam_data/feature_flags.dart
-          grep -q "kReadingExplanationProtoEnabled = true;" lib/exam_data/feature_flags.dart
       - name: Point ukalab_core at main dbcd197 (runner only, not committed)
         run: |
           sed -i 's/ref: 83ac22a0ffb0ad54a5ee0b1e25be5f0c1f66b1a9/ref: dbcd197346f27b5bb511850aeaa1eac6e14c5a5e/' pubspec.yaml
@@ -31,7 +26,8 @@ jobs:
         run: flutter analyze 2>&1 | tee analyze.log
       - name: test (log only)
         continue-on-error: true
-        run: timeout 25m flutter test --no-pub -r expanded > test_full.log 2>&1 || true
+        run: |
+          timeout 25m flutter test --no-pub -r expanded > test_full.log 2>&1 || true
           grep -nE '\[E\]|Some tests failed|All tests passed|\+[0-9]+.*-[0-9]+' test_full.log | tail -n 150 > test.log
           tail -n 60 test_full.log >> test.log
       - uses: actions/upload-artifact@v4
