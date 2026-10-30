@@ -19,7 +19,9 @@ dependencies:
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.86.0
+      # 【試作・マージ禁止】core はタグ未発行のため main のコミット SHA を参照している。
+      # マージ前に core のタグ（v0.87.0 等）へ戻すこと。
+      ref: 83ac22a0ffb0ad54a5ee0b1e25be5f0c1f66b1a9
 
   flutter_riverpod: ">=2.5.1 <3.0.0"
   shared_preferences: ^2.3.0

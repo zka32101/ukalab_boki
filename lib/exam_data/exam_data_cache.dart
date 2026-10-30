@@ -10,6 +10,7 @@ Future<ExamConfig>? _examConfigFuture;
 Future<List<Term>>? _termsFuture;
 Future<List<CompanyScenario>>? _companyScenariosFuture;
 Future<List<ChapterReading>>? _chapterReadingsFuture;
+Future<List<ChapterReading>>? _protoReadingsFuture;
 
 /// `assets/exam/boki3.questions.jsonl` を読み込み・パースする。
 ///
@@ -81,6 +82,24 @@ Future<List<ChapterReading>> _loadChapterReadings() async {
   final parsed = parseChapterReadingsJsonl(text);
   if (parsed.issues.isNotEmpty) {
     throw StateError('解説読み物データの読み込みに失敗しました: ${parsed.issues}');
+  }
+  final base = parsed.items.where((r) => !r.disabled).toList();
+  if (!kReadingExplanationProtoEnabled) return base;
+  return [...base, ...await loadProtoReadings()];
+}
+
+/// 【試作】`assets/exam/boki3.readings_proto.jsonl`（表・手順を使う試作の読み物）を読み込む。
+///
+/// [kReadingExplanationProtoEnabled] が false のとき、アプリ本体は呼ばない（テストは直接呼ぶ）。
+Future<List<ChapterReading>> loadProtoReadings() {
+  return _protoReadingsFuture ??= _loadProtoReadings();
+}
+
+Future<List<ChapterReading>> _loadProtoReadings() async {
+  final text = await rootBundle.loadString('assets/exam/boki3.readings_proto.jsonl');
+  final parsed = parseChapterReadingsJsonl(text);
+  if (parsed.issues.isNotEmpty) {
+    throw StateError('試作の解説読み物データの読み込みに失敗しました: ${parsed.issues}');
   }
   return parsed.items.where((r) => !r.disabled).toList();
 }

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel;
+import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel, readingsForQuestion;
 import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ui.dart';
@@ -19,6 +19,7 @@ import '../journal_input/account_catalog.dart';
 import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../progress/progress_revision.dart';
+import '../reading/reading_list_page.dart' show ReadingDetailPage;
 import '../progress/progress_store.dart' show attachCause, markLatestCorrect;
 import '../review/review_schedule.dart' show recordReviewResult;
 import '../voucher_input/voucher_kind.dart';
@@ -40,7 +41,17 @@ class PracticePage extends StatefulWidget {
     this.now,
     this.questionsOverride,
     this.newTypesEnabled = kNewQuestionTypesEnabled,
+    this.readingProtoEnabled = kReadingExplanationProtoEnabled,
+    this.readingsOverride,
   });
+
+  /// 【試作】誤答時に関連する読み物へ誘導する（`AnswerFeedbackPanel.relatedReadings`）。
+  /// 既定は [kReadingExplanationProtoEnabled]。false のときは従来のフィードバックのまま。
+  final bool readingProtoEnabled;
+
+  /// テスト用: 指定すると読み物データのロードの代わりにこの読み物群を使う。
+  @visibleForTesting
+  final List<ChapterReading>? readingsOverride;
 
   /// テスト用: 指定すると問題データのロードの代わりにこの問題群を使う。
   @visibleForTesting
@@ -80,6 +91,9 @@ class _PracticePageState extends State<PracticePage> {
   /// 直近の解答記録から優先的に出題した問題数（間隔反復）。0ならUIに出さない。
   int _priorityCount = 0;
 
+  /// 【試作】誤答時に出す関連読み物の候補（[PracticePage.readingProtoEnabled] が true のときだけ読む）。
+  List<ChapterReading> _readings = const [];
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +105,9 @@ class _PracticePageState extends State<PracticePage> {
         ? filterByNewQuestionTypes(widget.questionsOverride!,
             enabled: widget.newTypesEnabled)
         : await loadQuestions();
+    if (widget.readingProtoEnabled) {
+      _readings = widget.readingsOverride ?? await loadChapterReadings();
+    }
     final restrict = widget.restrictToQids;
     final subjectId = widget.subjectId;
 
@@ -143,6 +160,18 @@ class _PracticePageState extends State<PracticePage> {
               progressStore: widget.progressStore,
               priorityCount: _priorityCount,
               newTypesEnabled: widget.newTypesEnabled,
+              readings: _readings,
+              onOpenReading: !widget.readingProtoEnabled
+                  ? null
+                  : (r) => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ReadingDetailPage(
+                            reading: r,
+                            progressStore: widget.progressStore,
+                            protoEnabled: true,
+                          ),
+                        ),
+                      ),
             );
           },
         ),
@@ -157,7 +186,13 @@ class _SessionBody extends ConsumerStatefulWidget {
     required this.progressStore,
     this.priorityCount = 0,
     this.newTypesEnabled = false,
+    this.readings = const [],
+    this.onOpenReading,
   });
+
+  /// 【試作】誤答時に関連づける読み物。空・[onOpenReading] が null なら導線は出ない。
+  final List<ChapterReading> readings;
+  final ValueChanged<ChapterReading>? onOpenReading;
 
   final bool newTypesEnabled;
 
@@ -363,6 +398,10 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             question: current,
             selectedIndex: selectedIndex,
             includeCalculation: false,
+            relatedReadings: widget.onOpenReading == null
+                ? const []
+                : readingsForQuestion(widget.readings, current.qid),
+            onOpenReading: widget.onOpenReading,
             onCause: (c) =>
                 unawaited(attachCause(widget.progressStore, current.qid, c)),
           ),
