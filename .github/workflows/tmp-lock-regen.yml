@@ -1,0 +1,26 @@
+# 一時ワークフロー: pubspec.lock を再生成してコミットする。同じPR内で削除する。
+name: tmp-lock-regen
+on:
+  push:
+    branches: [chore/core-v0.87.0]
+    paths: ['.github/workflows/tmp-lock-regen.yml']
+permissions:
+  contents: write
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: 'stable'
+      - run: flutter pub get
+      - run: git diff --stat pubspec.lock
+      - name: commit lock
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pubspec.lock
+          git diff --cached --quiet || git commit -m "chore: pubspec.lock を再生成 (ukalab_core v0.87.0)" -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" -m "Claude-Session: https://claude.ai/code/session_01QmLvCGbaefFAiKGSxmWE88"
+          git push
