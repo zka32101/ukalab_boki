@@ -7,6 +7,7 @@ import 'package:ukalab_core/ukalab_core.dart';
 
 import '../common/wrapping_app_bar.dart';
 import '../exam_data/exam_data_cache.dart';
+import '../exam_data/feature_flags.dart';
 import '../hands_free/hands_free_state.dart';
 import '../practice/practice_page.dart';
 
@@ -14,10 +15,13 @@ import '../practice/practice_page.dart';
 ///
 /// 科目（第1問〜第3問）ごとに読み物を並べ、タップで [ReadingDetailPage] を開く。
 class ReadingListPage extends StatefulWidget {
-  const ReadingListPage({super.key, required this.progressStore});
+  const ReadingListPage({super.key, required this.progressStore, this.now});
 
   /// 関連問題を開くときの解答記録の保存先。
   final ProgressStore progressStore;
+
+  /// テスト用の時刻注入（省略時は現在時刻）。出題範囲（`levelId`）の判定に使う。
+  final DateTime? now;
 
   @override
   State<ReadingListPage> createState() => _ReadingListPageState();
@@ -27,7 +31,8 @@ class _ReadingListPageState extends State<ReadingListPage> {
   late final Future<(List<ChapterReading>, ExamConfig)> _future = _load();
 
   Future<(List<ChapterReading>, ExamConfig)> _load() async {
-    final readings = await loadChapterReadings();
+    // 現在の出題範囲に合う読み物だけ（levelId 指定のないものは常に出る）。
+    final readings = await loadChapterReadingsForCurrentLevel(now: widget.now);
     final exam = await loadExamConfig();
     return (readings, exam);
   }
@@ -82,10 +87,19 @@ class _ReadingListPageState extends State<ReadingListPage> {
 /// 解説読み物1本の詳細。節を順に表示し、末尾に関連用語・関連問題を出す。
 /// 本文中の用語はタップして用語カードを開ける。読み上げはプレミアム機能。
 class ReadingDetailPage extends ConsumerStatefulWidget {
-  const ReadingDetailPage({super.key, required this.reading, required this.progressStore});
+  const ReadingDetailPage({
+    super.key,
+    required this.reading,
+    required this.progressStore,
+    this.richEnabled = kReadingExplanationEnabled,
+  });
 
   final ChapterReading reading;
   final ProgressStore progressStore;
+
+  /// 表・手順・図を含む読み物を `ReadingSectionContent` で描画する。既定は
+  /// [kReadingExplanationEnabled]。本文だけの既存の読み物は、この値にかかわらず従来の表示。
+  final bool richEnabled;
 
   @override
   ConsumerState<ReadingDetailPage> createState() => _ReadingDetailPageState();
@@ -123,6 +137,28 @@ class _ReadingDetailPageState extends ConsumerState<ReadingDetailPage> {
           final (terms, questions) = snapshot.data!;
           Term? termById(String id) => terms.where((t) => t.termId == id).firstOrNull;
           Question? questionById(String id) => questions.where((q) => q.qid == id).firstOrNull;
+          void openQuestion(String qid) {
+            if (questionById(qid) == null) return;
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => PracticePage(
+                  progressStore: widget.progressStore,
+                  restrictToQids: {qid},
+                  title: '関連問題',
+                ),
+              ),
+            );
+          }
+
+          if (widget.richEnabled && r.sections.any((s) => s.kind != 'text')) {
+            return ReadingRichBody(
+              reading: r,
+              terms: terms,
+              questions: questions,
+              onOpenQuestion: openQuestion,
+              onOpenTerm: (t) => openTermCard(context, terms, t),
+            );
+          }
           return ChapterReadingWidget(
             title: r.title,
             sections: [for (final s in r.sections) ReadingSectionView(heading: s.heading, body: s.body)],
@@ -138,23 +174,95 @@ class _ReadingDetailPageState extends ConsumerState<ReadingDetailPage> {
             onRelatedTermTap: (termId) {
               if (termById(termId) case final t?) openTermCard(context, terms, t);
             },
-            onRelatedQuestionTap: (qid) {
-              if (questionById(qid) == null) return;
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PracticePage(
-                    progressStore: widget.progressStore,
-                    restrictToQids: {qid},
-                    title: '関連問題',
-                  ),
-                ),
-              );
-            },
+            onRelatedQuestionTap: openQuestion,
             onReadAloud: !isPremium
                 ? null
                 : () => appSpeaker.speakNow(r.sections.map((s) => '${s.heading}。${s.body}').join('')),
           );
         },
+      ),
+    );
+  }
+}
+
+/// 表・手順を含む読み物の本文。`ReadingSectionContent` で節を描画し、
+/// 関連用語・例題の解説（`ExplanationCard.fromPlain`）・関連問題リンクを末尾に出す。
+/// 表・手順・図の節を含む読み物のときだけ [ReadingDetailPage] から使われる（本文だけの読み物は従来の表示）。
+class ReadingRichBody extends StatelessWidget {
+  const ReadingRichBody({
+    super.key,
+    required this.reading,
+    required this.terms,
+    required this.questions,
+    required this.onOpenQuestion,
+    required this.onOpenTerm,
+  });
+
+  final ChapterReading reading;
+  final List<Term> terms;
+  final List<Question> questions;
+  final ValueChanged<String> onOpenQuestion;
+  final ValueChanged<Term> onOpenTerm;
+
+  String _shorten(String s) => s.length <= 40 ? s : '${s.substring(0, 40)}…';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final byQid = {for (final q in questions) q.qid: q};
+    Question? example;
+    for (final id in reading.relatedQuestionIds) {
+      final q = byQid[id];
+      if (q != null && q.type == QuestionType.journal) {
+        example = q;
+        break;
+      }
+    }
+    final relatedTerms = [
+      for (final id in reading.relatedTermIds)
+        for (final t in terms)
+          if (t.termId == id) t,
+    ];
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + MediaQuery.of(context).padding.bottom),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(reading.title, style: theme.textTheme.titleLarge),
+          for (final s in reading.sections) ...[
+            const SizedBox(height: 20),
+            ReadingSectionContent(section: s),
+          ],
+          if (relatedTerms.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text('関連用語', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final t in relatedTerms) ActionChip(label: Text(t.term), onPressed: () => onOpenTerm(t)),
+              ],
+            ),
+          ],
+          if (example != null) ...[
+            const SizedBox(height: 20),
+            Text('例題の解説', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(example.prompt, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 8),
+            ExplanationCard.fromPlain(example.explanation),
+          ],
+          const SizedBox(height: 20),
+          ReadingQuestionLinks.forReading(
+            reading: reading,
+            onOpenQuestion: onOpenQuestion,
+            labels: {
+              for (final id in reading.relatedQuestionIds)
+                if (byQid[id] case final q?) id: _shorten(q.displayPrompt),
+            },
+          ),
+        ],
       ),
     );
   }
