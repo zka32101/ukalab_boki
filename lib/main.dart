@@ -21,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'company_mode/company_mode_history_store.dart';
 import 'data/ad_unit_ids.dart';
 import 'exam_prep/exam_prep_entry.dart';
+import 'feedback/feedback_tile.dart';
 import 'hands_free/hands_free_state.dart';
 import 'company_mode/company_scenario_list_page.dart';
 import 'mistake_note/mistake_note_page.dart';
@@ -198,6 +199,9 @@ class UkalabBoki3App extends ConsumerWidget {
                     description: '解答記録・会社経営モードの履歴・「覚えた」にした用語・デイリーミッション・自分用メモ・間違いノートは、'
                         'テーマや購入を除いて、書き出し・読み込み・リセットができます。端末内にのみ保存されています。',
                   ),
+                  const SizedBox(height: 16),
+                  // 設定画面の中の context で Navigator を使うため、Builder で包む。
+                  Builder(builder: (_) => const FeedbackTile()),
                   const SizedBox(height: 16),
                   // build の context は MaterialApp より上で Navigator を含まないため、Builder で
                   // 画面の中の context を使って遷移する。
