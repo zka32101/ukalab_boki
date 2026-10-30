@@ -27,3 +27,14 @@ List<Question> filterByNewQuestionTypes(
   if (enabled) return questions;
   return questions.where((q) => !isNewQuestionType(q)).toList();
 }
+
+/// 読み物の表現拡張（表・手順の描画）と、誤答時の「読み物でおさらい」導線を有効にするか。
+/// ukalab_core v0.87.0 の機能を使う。
+///
+/// **true（既定）**: 表・手順を含む読み物を `ReadingSectionContent` で描画し、選択式を間違えたとき
+/// 関連する読み物へ誘導する。どの読み物を出すかは `levelId`（出題範囲）で決まるため、
+/// 新範囲（2027-04〜）限定の読み物は旧範囲の期間には一覧にも導線にも出ない。
+/// **false**: 従来の表示（本文のみ・誤答導線なし）に戻す。緊急時の切り戻し用。
+///
+/// コンパイル時定数。テストでは各画面の引数で切り替える。
+const bool kReadingExplanationEnabled = true;

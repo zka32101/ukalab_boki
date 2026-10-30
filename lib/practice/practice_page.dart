@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel;
+import 'package:ukalab_core/answer_feedback.dart' show AnswerFeedbackPanel, readingsForQuestion;
 import '../oshi/boki3_coin_earn.dart';
 import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import 'package:ukalab_core/ui.dart';
@@ -19,6 +19,7 @@ import '../journal_input/account_catalog.dart';
 import '../journal_input/journal_question_view.dart';
 import '../ledger_input/ledger_question_view.dart';
 import '../progress/progress_revision.dart';
+import '../reading/reading_list_page.dart' show ReadingDetailPage;
 import '../progress/progress_store.dart' show attachCause, markLatestCorrect;
 import '../review/review_schedule.dart' show recordReviewResult;
 import '../voucher_input/voucher_kind.dart';
@@ -40,7 +41,18 @@ class PracticePage extends StatefulWidget {
     this.now,
     this.questionsOverride,
     this.newTypesEnabled = kNewQuestionTypesEnabled,
+    this.readingEnabled = kReadingExplanationEnabled,
+    this.readingsOverride,
   });
+
+  /// 選択式を間違えたとき、関連する読み物へ誘導する（`AnswerFeedbackPanel.relatedReadings`）。
+  /// 既定は [kReadingExplanationEnabled]。誘導する読み物は現在の出題範囲（`levelId`）に合うものだけ。
+  final bool readingEnabled;
+
+  /// テスト用: 指定すると読み物データのロードの代わりにこの読み物群を使う
+  /// （出題範囲による絞り込みは、これに対しても行う）。
+  @visibleForTesting
+  final List<ChapterReading>? readingsOverride;
 
   /// テスト用: 指定すると問題データのロードの代わりにこの問題群を使う。
   @visibleForTesting
@@ -80,10 +92,26 @@ class _PracticePageState extends State<PracticePage> {
   /// 直近の解答記録から優先的に出題した問題数（間隔反復）。0ならUIに出さない。
   int _priorityCount = 0;
 
+  /// 誤答時に出す関連読み物の候補（現在の出題範囲に合うものだけ。[PracticePage.readingEnabled] が true のときだけ読む）。
+  List<ChapterReading> _readings = const [];
+
   @override
   void initState() {
     super.initState();
     _sessionFuture = _loadSession();
+    if (widget.readingEnabled) unawaited(_loadReadings());
+  }
+
+  /// 誤答時に誘導する読み物を、出題とは別に読み込む（出題の開始を待たせず、
+  /// 読み込めなくても演習は従来どおり進む）。現在の出題範囲に合うものだけ残す。
+  Future<void> _loadReadings() async {
+    try {
+      final all = widget.readingsOverride ?? await loadChapterReadings();
+      final visible = readingsForLevel(all, currentLevelId(now: widget.now));
+      if (mounted) setState(() => _readings = visible);
+    } catch (_) {
+      // 読み物は補助的な導線。失敗しても何も出さない。
+    }
   }
 
   Future<PracticeSession> _loadSession() async {
@@ -143,6 +171,17 @@ class _PracticePageState extends State<PracticePage> {
               progressStore: widget.progressStore,
               priorityCount: _priorityCount,
               newTypesEnabled: widget.newTypesEnabled,
+              readings: _readings,
+              onOpenReading: !widget.readingEnabled
+                  ? null
+                  : (r) => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ReadingDetailPage(
+                            reading: r,
+                            progressStore: widget.progressStore,
+                          ),
+                        ),
+                      ),
             );
           },
         ),
@@ -157,7 +196,13 @@ class _SessionBody extends ConsumerStatefulWidget {
     required this.progressStore,
     this.priorityCount = 0,
     this.newTypesEnabled = false,
+    this.readings = const [],
+    this.onOpenReading,
   });
+
+  /// 誤答時に関連づける読み物。空・[onOpenReading] が null なら導線は出ない。
+  final List<ChapterReading> readings;
+  final ValueChanged<ChapterReading>? onOpenReading;
 
   final bool newTypesEnabled;
 
@@ -363,6 +408,10 @@ class _SessionBodyState extends ConsumerState<_SessionBody> {
             question: current,
             selectedIndex: selectedIndex,
             includeCalculation: false,
+            relatedReadings: widget.onOpenReading == null
+                ? const []
+                : readingsForQuestion(widget.readings, current.qid),
+            onOpenReading: widget.onOpenReading,
             onCause: (c) =>
                 unawaited(attachCause(widget.progressStore, current.qid, c)),
           ),

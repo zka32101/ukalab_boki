@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:ukalab_core/ukalab_core.dart';
 
+import 'current_level.dart';
 import 'feature_flags.dart';
 
 Future<List<Question>>? _questionsFuture;
@@ -83,4 +84,13 @@ Future<List<ChapterReading>> _loadChapterReadings() async {
     throw StateError('解説読み物データの読み込みに失敗しました: ${parsed.issues}');
   }
   return parsed.items.where((r) => !r.disabled).toList();
+}
+
+/// 現在の出題範囲（[currentLevelId]）で表示する解説読み物だけを返す。
+///
+/// `levelId` を持たない読み物は常に含まれ、持つ読み物は現在の範囲と一致するものだけ
+/// （`readingsForLevel`）。読み物の一覧・誤答時の導線は、必ずこちらを使う。
+/// [now] はテスト用の時刻注入（省略時は現在時刻）。
+Future<List<ChapterReading>> loadChapterReadingsForCurrentLevel({DateTime? now}) async {
+  return readingsForLevel(await loadChapterReadings(), currentLevelId(now: now));
 }
