@@ -99,6 +99,19 @@ class _PracticePageState extends State<PracticePage> {
   void initState() {
     super.initState();
     _sessionFuture = _loadSession();
+    if (widget.readingEnabled) unawaited(_loadReadings());
+  }
+
+  /// 誤答時に誘導する読み物を、出題とは別に読み込む（出題の開始を待たせず、
+  /// 読み込めなくても演習は従来どおり進む）。現在の出題範囲に合うものだけ残す。
+  Future<void> _loadReadings() async {
+    try {
+      final all = widget.readingsOverride ?? await loadChapterReadings();
+      final visible = readingsForLevel(all, currentLevelId(now: widget.now));
+      if (mounted) setState(() => _readings = visible);
+    } catch (_) {
+      // 読み物は補助的な導線。失敗しても何も出さない。
+    }
   }
 
   Future<PracticeSession> _loadSession() async {
@@ -106,12 +119,6 @@ class _PracticePageState extends State<PracticePage> {
         ? filterByNewQuestionTypes(widget.questionsOverride!,
             enabled: widget.newTypesEnabled)
         : await loadQuestions();
-    if (widget.readingEnabled) {
-      _readings = readingsForLevel(
-        widget.readingsOverride ?? await loadChapterReadings(),
-        currentLevelId(now: widget.now),
-      );
-    }
     final restrict = widget.restrictToQids;
     final subjectId = widget.subjectId;
 
